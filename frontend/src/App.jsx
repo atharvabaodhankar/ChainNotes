@@ -19,27 +19,64 @@ function App() {
   };
 
   const loadNotes = async () => {
-    const contract = await getContract();
-    const myNotes = await contract.getMyNotes();
-    setNotes(myNotes);
+    try {
+      // Check if MetaMask is connected
+      if (!window.ethereum) {
+        console.error("MetaMask not found");
+        return;
+      }
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const network = await provider.getNetwork();
+      console.log("Connected to network:", network.chainId.toString());
+      
+      // Check if contract exists at the address
+      const code = await provider.getCode(contractAddress);
+      if (code === '0x') {
+        console.error("No contract found at address:", contractAddress);
+        console.error("Make sure your contract is deployed and you're on the right network");
+        setNotes([]);
+        return;
+      }
+
+      const contract = await getContract();
+      
+      // Simple approach: just try to get notes and handle any error
+      try {
+        const myNotes = await contract.getMyNotes();
+        setNotes(Array.isArray(myNotes) ? myNotes : []);
+        console.log("Loaded notes:", myNotes);
+      } catch (error) {
+        // Any error (including BAD_DATA for empty arrays) just means no notes
+        console.log("No notes found or empty array:", error.message);
+        setNotes([]);
+      }
+    } catch (error) {
+      console.error("Error loading notes:", error);
+      setNotes([]);
+    }
   };
 
   const addNote = async () => {
     if (!noteInput) return;
 
-    // 1. Upload to Pinata
-    const ipfsHash = await uploadNoteToIPFS(noteInput);
+    try {
+      // 1. Upload to Pinata
+      const ipfsHash = await uploadNoteToIPFS(noteInput);
 
-    // 2. Save hash in contract
-    const contract = await getContract();
-    await contract.addNote(ipfsHash, {
-      gasLimit: 300000, // add this
-    });
+      // 2. Save hash in contract
+      const contract = await getContract();
+      const tx = await contract.addNote(ipfsHash, {
+        gasLimit: 300000,
+      });
 
-    await tx.wait();
+      await tx.wait();
 
-    setNoteInput("");
-    loadNotes();
+      setNoteInput("");
+      loadNotes();
+    } catch (error) {
+      console.error("Error adding note:", error);
+    }
   };
 
   useEffect(() => {
