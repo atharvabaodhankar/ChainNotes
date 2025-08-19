@@ -3,15 +3,13 @@ import axios from "axios";
 const PINATA_API_KEY = import.meta.env.VITE_PINATA_API_KEY;
 const PINATA_SECRET_API_KEY = import.meta.env.VITE_PINATA_SECRET_API_KEY;
 
-export const uploadNoteToIPFS = async (noteContent) => {
+export const uploadNoteToIPFS = async (noteData) => {
   try {
     const url = `https://api.pinata.cloud/pinning/pinJSONToIPFS`;
 
     const response = await axios.post(
       url,
-      {
-        content: noteContent, // you can expand this later for images/files
-      },
+      noteData, // Now accepts both title and content
       {
         headers: {
           "Content-Type": "application/json",

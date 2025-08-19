@@ -7,12 +7,16 @@ const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
 
 function App() {
   const [notes, setNotes] = useState([]);
-  const [noteInput, setNoteInput] = useState("");
+  const [noteTitle, setNoteTitle] = useState("");
+  const [noteContent, setNoteContent] = useState("");
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [userAddress, setUserAddress] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [networkError, setNetworkError] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [currentView, setCurrentView] = useState("dashboard"); // dashboard, calendar
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const connectWallet = async () => {
     try {
@@ -77,11 +81,17 @@ function App() {
       const response = await fetch(
         `https://gateway.pinata.cloud/ipfs/${ipfsHash}`
       );
-      const jsonData = await response.json(); // Parse as JSON instead of text
-      return jsonData.content || "No content found"; // Extract the content field
+      const jsonData = await response.json();
+      return {
+        title: jsonData.title || "Untitled Note",
+        content: jsonData.content || "No content found",
+      };
     } catch (error) {
       console.error("Error fetching note content:", error);
-      return "Error loading content";
+      return {
+        title: "Error loading title",
+        content: "Error loading content",
+      };
     }
   };
 
@@ -95,13 +105,14 @@ function App() {
 
       const notesArray = await Promise.all(
         myNotes.map(async (note) => {
-          const content = await fetchNoteContent(note.ipfsHash);
+          const noteData = await fetchNoteContent(note.ipfsHash);
           return {
             id: note.id.toString(),
             ipfsHash: note.ipfsHash,
             owner: note.owner,
             timestamp: note.timestamp.toString(),
-            content: content,
+            title: noteData.title,
+            content: noteData.content,
           };
         })
       );
@@ -116,16 +127,22 @@ function App() {
   };
 
   const addNote = async () => {
-    if (!noteInput.trim() || !isConnected) return;
+    if (!noteContent.trim() || !isConnected) return;
 
     setIsAddingNote(true);
     try {
-      const ipfsHash = await uploadNoteToIPFS(noteInput.trim());
+      const noteData = {
+        title: noteTitle.trim() || "Untitled Note",
+        content: noteContent.trim(),
+      };
+      const ipfsHash = await uploadNoteToIPFS(noteData);
       const contract = await getContract();
       const tx = await contract.addNote(ipfsHash, { gasLimit: 300000 });
       await tx.wait();
 
-      setNoteInput("");
+      setNoteTitle("");
+      setNoteContent("");
+      setShowAddModal(false);
       loadNotes();
     } catch (error) {
       console.error("Error adding note:", error);
@@ -135,11 +152,35 @@ function App() {
     }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      addNote();
+  const getNotesForDate = (date) => {
+    return notes.filter((note) => {
+      const noteDate = new Date(Number(note.timestamp) * 1000);
+      return noteDate.toDateString() === date.toDateString();
+    });
+  };
+
+  const getCalendarDays = () => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days = [];
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
     }
+
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(currentYear, currentMonth, day));
+    }
+
+    return days;
   };
 
   useEffect(() => {
@@ -265,7 +306,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-8 mb-6 shadow-2xl shadow-purple-500/10">
           <div className="flex items-center justify-between">
@@ -277,43 +318,356 @@ function App() {
                 Decentralized • Immutable • Secure
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-emerald-400 text-sm mb-1 font-medium">
-                ● Connected
+            <div className="flex items-center gap-4">
+              <div className="flex bg-gray-700/50 rounded-xl p-1 border border-purple-500/20">
+                <button
+                  onClick={() => setCurrentView("dashboard")}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    currentView === "dashboard"
+                      ? "bg-gradient-to-r from-emerald-500 to-purple-500 text-white shadow-lg"
+                      : "text-gray-400 hover:text-gray-200"
+                  }`}
+                >
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => setCurrentView("calendar")}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    currentView === "calendar"
+                      ? "bg-gradient-to-r from-emerald-500 to-purple-500 text-white shadow-lg"
+                      : "text-gray-400 hover:text-gray-200"
+                  }`}
+                >
+                  Calendar
+                </button>
               </div>
-              <div className="text-gray-100 font-mono text-sm bg-gray-700/50 px-4 py-2 rounded-lg border border-emerald-500/30 shadow-lg shadow-emerald-500/10">
-                {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
+              <div className="text-right">
+                <div className="text-emerald-400 text-sm mb-1 font-medium">
+                  ● Connected
+                </div>
+                <div className="text-gray-100 font-mono text-sm bg-gray-700/50 px-4 py-2 rounded-lg border border-emerald-500/30 shadow-lg shadow-emerald-500/10">
+                  {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Add Note Section */}
-        <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-8 mb-6 shadow-2xl shadow-purple-500/10">
-          <div className="flex gap-4">
-            <textarea
-              className="flex-1 bg-gray-700/50 border border-purple-500/30 rounded-xl p-4 text-gray-100 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500/50 transition-all duration-300 backdrop-blur-sm"
-              placeholder="Enter the matrix... write your note here ✨"
-              value={noteInput}
-              onChange={(e) => setNoteInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              rows={3}
-              disabled={isAddingNote}
-            />
-            <button
-              onClick={addNote}
-              disabled={!noteInput.trim() || isAddingNote}
-              className="bg-gradient-to-r from-emerald-500 to-purple-500 text-white px-8 py-4 rounded-xl font-semibold hover:from-emerald-400 hover:to-purple-400 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2 whitespace-nowrap shadow-lg shadow-emerald-500/25"
-            >
-              {isAddingNote ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  Deploying...
-                </>
+        {/* Dashboard View */}
+        {currentView === "dashboard" && (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 shadow-2xl shadow-purple-500/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-purple-500 rounded-xl flex items-center justify-center">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">Total Notes</p>
+                    <p className="text-2xl font-bold text-gray-100">
+                      {notes.length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 shadow-2xl shadow-purple-500/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">This Month</p>
+                    <p className="text-2xl font-bold text-gray-100">
+                      {
+                        notes.filter((note) => {
+                          const noteDate = new Date(
+                            Number(note.timestamp) * 1000
+                          );
+                          const now = new Date();
+                          return (
+                            noteDate.getMonth() === now.getMonth() &&
+                            noteDate.getFullYear() === now.getFullYear()
+                          );
+                        }).length
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 shadow-2xl shadow-purple-500/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-xl flex items-center justify-center">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm">On Chain</p>
+                    <p className="text-2xl font-bold text-emerald-400">
+                      Secure
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Notes */}
+            <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-8 shadow-2xl shadow-purple-500/10">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-100 flex items-center gap-3">
+                  <span className="w-3 h-3 bg-gradient-to-r from-emerald-400 to-purple-400 rounded-full animate-pulse"></span>
+                  Recent Notes
+                </h2>
+              </div>
+
+              {loadingNotes ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent"></div>
+                  <span className="text-gray-300 ml-3">
+                    Syncing with blockchain...
+                  </span>
+                </div>
+              ) : notes.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
+                    <svg
+                      className="w-8 h-8 text-emerald-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-gray-300 mb-2 text-lg">
+                    No notes in the matrix
+                  </p>
+                  <p className="text-gray-400 text-sm">
+                    Click the + button to create your first note
+                  </p>
+                </div>
               ) : (
-                <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {notes.slice(0, 6).map((note, i) => (
+                    <div
+                      key={i}
+                      className="bg-gray-700/30 border border-purple-500/20 rounded-xl p-6 hover:border-emerald-500/40 hover:bg-gray-700/50 transition-all duration-300 group backdrop-blur-sm shadow-lg hover:shadow-emerald-500/10"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="bg-gradient-to-r from-emerald-500 to-purple-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
+                          #{note.id}
+                        </span>
+                        <span className="text-gray-400 text-xs font-mono">
+                          {new Date(
+                            Number(note.timestamp) * 1000
+                          ).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <h3 className="text-gray-100 font-semibold mb-2 truncate">
+                        {note.title}
+                      </h3>
+                      <p className="text-gray-300 text-sm line-clamp-3">
+                        {note.content}
+                      </p>
+                      <a
+                        href={`https://gateway.pinata.cloud/ipfs/${note.ipfsHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-400 hover:text-emerald-300 text-xs mt-3 inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                      >
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
+                        </svg>
+                        View on IPFS
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Calendar View */}
+        {currentView === "calendar" && (
+          <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-8 shadow-2xl shadow-purple-500/10">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-100">
+                {new Date().toLocaleDateString("en-US", {
+                  month: "long",
+                  year: "numeric",
+                })}
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-7 gap-2 mb-4">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <div
+                  key={day}
+                  className="text-center text-gray-400 text-sm font-medium py-2"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-2">
+              {getCalendarDays().map((date, index) => {
+                if (!date) {
+                  return <div key={index} className="h-20"></div>;
+                }
+
+                const dayNotes = getNotesForDate(date);
+                const isToday =
+                  date.toDateString() === new Date().toDateString();
+
+                return (
+                  <div
+                    key={index}
+                    className={`h-20 border border-purple-500/20 rounded-lg p-2 hover:border-emerald-500/40 transition-all duration-200 cursor-pointer ${
+                      isToday
+                        ? "bg-emerald-500/10 border-emerald-500/40"
+                        : "bg-gray-700/20"
+                    }`}
+                    onClick={() => setSelectedDate(date)}
+                  >
+                    <div className="text-gray-100 text-sm font-medium">
+                      {date.getDate()}
+                    </div>
+                    {dayNotes.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {dayNotes.slice(0, 2).map((note, i) => (
+                          <div
+                            key={i}
+                            className="w-2 h-2 bg-gradient-to-r from-emerald-400 to-purple-400 rounded-full"
+                          ></div>
+                        ))}
+                        {dayNotes.length > 2 && (
+                          <div className="text-xs text-emerald-400">
+                            +{dayNotes.length - 2}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {selectedDate && (
+              <div className="mt-6 p-4 bg-gray-700/30 rounded-xl border border-purple-500/20">
+                <h3 className="text-gray-100 font-semibold mb-3">
+                  Notes for {selectedDate.toLocaleDateString()}
+                </h3>
+                {getNotesForDate(selectedDate).length === 0 ? (
+                  <p className="text-gray-400 text-sm">
+                    No notes for this date
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {getNotesForDate(selectedDate).map((note, i) => (
+                      <div key={i} className="bg-gray-600/30 rounded-lg p-3">
+                        <h4 className="text-gray-100 font-medium text-sm">
+                          {note.title}
+                        </h4>
+                        <p className="text-gray-300 text-xs mt-1 line-clamp-2">
+                          {note.content}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Floating Add Button */}
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-emerald-500 to-purple-500 text-white rounded-full shadow-2xl shadow-emerald-500/25 hover:from-emerald-400 hover:to-purple-400 transition-all duration-300 transform hover:scale-110 flex items-center justify-center z-50"
+        >
+          <svg
+            className="w-8 h-8"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+        </button>
+
+        {/* Add Note Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-8 max-w-2xl w-full shadow-2xl shadow-purple-500/10">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-100 bg-gradient-to-r from-emerald-400 to-purple-400 bg-clip-text text-transparent">
+                  Create New Note
+                </h2>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="text-gray-400 hover:text-gray-200 transition-colors duration-200"
+                >
                   <svg
-                    className="w-4 h-4"
+                    className="w-6 h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -322,93 +676,59 @@ function App() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M12 4v16m8-8H4"
+                      d="M6 18L18 6M6 6l12 12"
                     />
                   </svg>
-                  Deploy Note
-                </>
-              )}
-            </button>
-          </div>
-          <p className="text-gray-400 text-sm mt-3 flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-            Press Enter to deploy • Stored on IPFS & Blockchain
-          </p>
-        </div>
-
-        {/* Notes List */}
-        <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-8 shadow-2xl shadow-purple-500/10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-100 flex items-center gap-3">
-              <span className="w-3 h-3 bg-gradient-to-r from-emerald-400 to-purple-400 rounded-full animate-pulse"></span>
-              Your Notes
-            </h2>
-            <span className="text-gray-300 text-sm bg-gradient-to-r from-emerald-500/20 to-purple-500/20 px-4 py-2 rounded-full border border-emerald-500/30 backdrop-blur-sm">
-              {notes.length} {notes.length === 1 ? "note" : "notes"}
-            </span>
-          </div>
-
-          {loadingNotes ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent"></div>
-              <span className="text-gray-300 ml-3">
-                Syncing with blockchain...
-              </span>
-            </div>
-          ) : notes.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
-                <svg
-                  className="w-8 h-8 text-emerald-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
+                </button>
               </div>
-              <p className="text-gray-300 mb-2 text-lg">
-                No notes in the matrix
-              </p>
-              <p className="text-gray-400 text-sm">
-                Deploy your first decentralized note above ↑
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {notes.map((note, i) => (
-                <div
-                  key={i}
-                  className="bg-gray-700/30 border border-purple-500/20 rounded-xl p-6 hover:border-emerald-500/40 hover:bg-gray-700/50 transition-all duration-300 group backdrop-blur-sm shadow-lg hover:shadow-emerald-500/10"
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full bg-gray-700/50 border border-purple-500/30 rounded-xl p-4 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500/50 transition-all duration-300"
+                    placeholder="Enter note title..."
+                    value={noteTitle}
+                    onChange={(e) => setNoteTitle(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Content
+                  </label>
+                  <textarea
+                    className="w-full bg-gray-700/50 border border-purple-500/30 rounded-xl p-4 text-gray-100 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500/50 transition-all duration-300"
+                    placeholder="Write your note content here..."
+                    value={noteContent}
+                    onChange={(e) => setNoteContent(e.target.value)}
+                    rows={6}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4 mt-6">
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 bg-gray-700/50 text-gray-300 px-6 py-3 rounded-xl font-medium hover:bg-gray-700/70 transition-colors duration-200"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <span className="bg-gradient-to-r from-emerald-500 to-purple-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
-                        #{note.id}
-                      </span>
-                      <span className="text-gray-400 text-sm font-mono">
-                        {new Date(
-                          Number(note.timestamp) * 1000
-                        ).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    </div>
-                    <a
-                      href={`https://gateway.pinata.cloud/ipfs/${note.ipfsHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-500 hover:text-emerald-400 text-sm flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 font-medium"
-                    >
+                  Cancel
+                </button>
+                <button
+                  onClick={addNote}
+                  disabled={!noteContent.trim() || isAddingNote}
+                  className="flex-1 bg-gradient-to-r from-emerald-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-emerald-400 hover:to-purple-400 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                >
+                  {isAddingNote ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      Deploying...
+                    </>
+                  ) : (
+                    <>
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -419,20 +739,17 @@ function App() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          d="M12 4v16m8-8H4"
                         />
                       </svg>
-                      IPFS
-                    </a>
-                  </div>
-                  <div className="text-gray-100 leading-relaxed text-lg">
-                    {note.content}
-                  </div>
-                </div>
-              ))}
+                      Deploy Note
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
