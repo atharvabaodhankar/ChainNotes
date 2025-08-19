@@ -8,6 +8,7 @@ const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
 function App() {
   const [notes, setNotes] = useState([]);
   const [noteInput, setNoteInput] = useState("");
+  const [loadingNotes, setLoadingNotes] = useState(true);
 
   let contract;
 
@@ -16,6 +17,17 @@ function App() {
     const signer = await provider.getSigner();
     contract = new ethers.Contract(contractAddress, NotesABI, signer);
     return contract;
+  };
+
+  const fetchNoteContent = async (ipfsHash) => {
+    try {
+      const response = await fetch(`https://gateway.pinata.cloud/ipfs/${ipfsHash}`);
+      const jsonData = await response.json(); // Parse as JSON instead of text
+      return jsonData.content || "No content found"; // Extract the content field
+    } catch (error) {
+      console.error("Error fetching note content:", error);
+      return "Error loading content";
+    }
   };
 
   const loadNotes = async () => {
@@ -41,19 +53,36 @@ function App() {
 
       const contract = await getContract();
       
-      // Simple approach: just try to get notes and handle any error
+      // Get notes and convert from proxy objects to regular objects
       try {
         const myNotes = await contract.getMyNotes();
-        setNotes(Array.isArray(myNotes) ? myNotes : []);
-        console.log("Loaded notes:", myNotes);
+        
+        // Convert proxy objects and fetch content from IPFS
+        const notesArray = await Promise.all(
+          myNotes.map(async (note) => {
+            const content = await fetchNoteContent(note.ipfsHash);
+            return {
+              id: note.id.toString(),
+              ipfsHash: note.ipfsHash,
+              owner: note.owner,
+              timestamp: note.timestamp.toString(),
+              content: content
+            };
+          })
+        );
+        
+        setNotes(notesArray);
+        console.log("Loaded notes with content:", notesArray);
       } catch (error) {
         // Any error (including BAD_DATA for empty arrays) just means no notes
         console.log("No notes found or empty array:", error.message);
         setNotes([]);
       }
+      setLoadingNotes(false);
     } catch (error) {
       console.error("Error loading notes:", error);
       setNotes([]);
+      setLoadingNotes(false);
     }
   };
 
@@ -103,22 +132,37 @@ function App() {
         </button>
       </div>
 
-      <ul className="mt-6">
-        {notes.map((note, i) => (
-          <li key={i} className="border-b py-2">
-            <a
-              href={`https://gateway.pinata.cloud/ipfs/${note.ipfsHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500"
-            >
-              View Note {note.id.toString()}
-            </a>{" "}
-            (added on {new Date(Number(note.timestamp) * 1000).toLocaleString()}
-            )
-          </li>
-        ))}
-      </ul>
+      {loadingNotes ? (
+        <div className="mt-6 text-gray-500">Loading notes...</div>
+      ) : (
+        <div className="mt-6">
+          {notes.length === 0 ? (
+            <p className="text-gray-500">No notes yet. Add your first note above!</p>
+          ) : (
+            <div className="space-y-4">
+              {notes.map((note, i) => (
+                <div key={i} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="mb-2">
+                    <span className="text-sm text-gray-500">Note #{note.id}</span>
+                    <span className="text-sm text-gray-400 ml-2">
+                      {new Date(Number(note.timestamp) * 1000).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="mb-2 text-gray-800">{note.content}</div>
+                  <a
+                    href={`https://gateway.pinata.cloud/ipfs/${note.ipfsHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 text-sm hover:underline"
+                  >
+                    View on IPFS →
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
