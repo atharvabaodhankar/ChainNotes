@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import { uploadNoteToIPFS } from "./utils/pinata";
+import { uploadNoteToIPFS, deleteNoteFromIPFS } from "./utils/pinata";
 import NotesABI from "./abis/NotesABI.json";
 
 const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
@@ -160,9 +160,23 @@ function App() {
 
     setDeletingNoteId(noteId);
     try {
+      // Find the note to get its IPFS hash
+      const noteToDeleteData = notes.find(note => note.id === noteId);
+      
+      // 1. Delete from blockchain first
       const contract = await getContract();
       const tx = await contract.deleteNote(noteId, { gasLimit: 300000 });
       await tx.wait();
+      
+      // 2. Delete from Pinata/IPFS (optional - won't fail if this fails)
+      if (noteToDeleteData?.ipfsHash) {
+        const pinataDeleted = await deleteNoteFromIPFS(noteToDeleteData.ipfsHash);
+        if (pinataDeleted) {
+          console.log("✅ Note deleted from both blockchain and IPFS");
+        } else {
+          console.log("⚠️ Note deleted from blockchain, but IPFS deletion failed");
+        }
+      }
       
       setShowDeleteModal(false);
       setNoteToDelete(null);

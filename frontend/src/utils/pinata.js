@@ -26,3 +26,23 @@ export const uploadNoteToIPFS = async (noteData) => {
     throw error;
   }
 };
+
+export const deleteNoteFromIPFS = async (ipfsHash) => {
+  try {
+    const url = `https://api.pinata.cloud/pinning/unpin/${ipfsHash}`;
+
+    await axios.delete(url, {
+      headers: {
+        pinata_api_key: PINATA_API_KEY,
+        pinata_secret_api_key: PINATA_SECRET_API_KEY,
+      },
+    });
+
+    console.log(`Successfully unpinned ${ipfsHash} from Pinata`);
+    return true;
+  } catch (error) {
+    console.error("Error deleting from Pinata: ", error);
+    // Don't throw error - blockchain deletion should still work even if Pinata fails
+    return false;
+  }
+};
