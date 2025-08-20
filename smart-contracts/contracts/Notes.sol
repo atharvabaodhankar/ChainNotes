@@ -34,7 +34,21 @@ contract Notes {
 
     function deleteNote(uint _id) external {
         require(notes[_id].owner == msg.sender, "Not your note");
+        
+        // Remove from notes mapping
         delete notes[_id];
+        
+        // Remove from userNotes array
+        uint[] storage userNoteIds = userNotes[msg.sender];
+        for (uint i = 0; i < userNoteIds.length; i++) {
+            if (userNoteIds[i] == _id) {
+                // Move last element to current position and remove last element
+                userNoteIds[i] = userNoteIds[userNoteIds.length - 1];
+                userNoteIds.pop();
+                break;
+            }
+        }
+        
         emit NoteDeleted(_id, msg.sender);
     }
 }

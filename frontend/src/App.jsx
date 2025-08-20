@@ -148,8 +148,14 @@ function App() {
       for (let i = 0; i < myNotes.length; i++) {
         const note = myNotes[i];
         
+        // Skip deleted notes (empty IPFS hash or empty owner)
+        if (!note.ipfsHash || note.ipfsHash.trim() === '' || !note.owner || note.owner === '0x0000000000000000000000000000000000000000') {
+          console.log(`Skipping deleted note #${note.id}`);
+          continue;
+        }
+        
         // Add delay between requests to avoid rate limiting
-        if (i > 0) {
+        if (notesArray.length > 0) {
           await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
         }
         
