@@ -17,6 +17,9 @@ function App() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [currentView, setCurrentView] = useState("dashboard"); // dashboard, calendar
   const [selectedDate, setSelectedDate] = useState(null);
+  const [deletingNoteId, setDeletingNoteId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState(null);
 
   const connectWallet = async () => {
     try {
@@ -150,6 +153,31 @@ function App() {
     } finally {
       setIsAddingNote(false);
     }
+  };
+
+  const deleteNote = async (noteId) => {
+    if (!isConnected) return;
+
+    setDeletingNoteId(noteId);
+    try {
+      const contract = await getContract();
+      const tx = await contract.deleteNote(noteId, { gasLimit: 300000 });
+      await tx.wait();
+      
+      setShowDeleteModal(false);
+      setNoteToDelete(null);
+      loadNotes();
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      alert("Failed to delete note. Please try again.");
+    } finally {
+      setDeletingNoteId(null);
+    }
+  };
+
+  const handleDeleteClick = (note) => {
+    setNoteToDelete(note);
+    setShowDeleteModal(true);
   };
 
   const getNotesForDate = (date) => {
@@ -499,11 +527,22 @@ function App() {
                         <span className="bg-gradient-to-r from-emerald-500 to-purple-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
                           #{note.id}
                         </span>
-                        <span className="text-gray-400 text-xs font-mono">
-                          {new Date(
-                            Number(note.timestamp) * 1000
-                          ).toLocaleDateString()}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-400 text-xs font-mono">
+                            {new Date(
+                              Number(note.timestamp) * 1000
+                            ).toLocaleDateString()}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteClick(note)}
+                            className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all duration-300 p-1 rounded-lg hover:bg-red-500/10"
+                            title="Delete note"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                       <h3 className="text-gray-100 font-semibold mb-2 truncate">
                         {note.title}
@@ -511,27 +550,29 @@ function App() {
                       <p className="text-gray-300 text-sm line-clamp-3">
                         {note.content}
                       </p>
-                      <a
-                        href={`https://gateway.pinata.cloud/ipfs/${note.ipfsHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-emerald-400 hover:text-emerald-300 text-xs mt-3 inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300"
-                      >
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      <div className="flex items-center justify-between mt-3">
+                        <a
+                          href={`https://gateway.pinata.cloud/ipfs/${note.ipfsHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-400 hover:text-emerald-300 text-xs inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                          />
-                        </svg>
-                        View on IPFS
-                      </a>
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                            />
+                          </svg>
+                          View on IPFS
+                        </a>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -743,6 +784,79 @@ function App() {
                         />
                       </svg>
                       Deploy Note
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && noteToDelete && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-red-500/20 p-8 max-w-md w-full shadow-2xl shadow-red-500/10">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-100 bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">
+                  Delete Note
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setNoteToDelete(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-200 transition-colors duration-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center border border-red-500/30">
+                    <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-gray-100 font-semibold">Are you sure?</h3>
+                    <p className="text-gray-400 text-sm">This action cannot be undone.</p>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-700/30 rounded-xl p-4 border border-red-500/20">
+                  <h4 className="text-gray-100 font-medium mb-2">#{noteToDelete.id} - {noteToDelete.title}</h4>
+                  <p className="text-gray-300 text-sm line-clamp-3">{noteToDelete.content}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setNoteToDelete(null);
+                  }}
+                  className="flex-1 bg-gray-700/50 text-gray-300 px-6 py-3 rounded-xl font-medium hover:bg-gray-700/70 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => deleteNote(noteToDelete.id)}
+                  disabled={deletingNoteId === noteToDelete.id}
+                  className="flex-1 bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-red-400 hover:to-pink-400 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                >
+                  {deletingNoteId === noteToDelete.id ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete Note
                     </>
                   )}
                 </button>
