@@ -81,19 +81,56 @@ function App() {
 
   const fetchNoteContent = async (ipfsHash) => {
     try {
-      const response = await fetch(
-        `https://gateway.pinata.cloud/ipfs/${ipfsHash}`
-      );
-      const jsonData = await response.json();
-      return {
-        title: jsonData.title || "Untitled Note",
-        content: jsonData.content || "No content found",
-      };
+      // Check if ipfsHash is valid
+      if (!ipfsHash || ipfsHash.trim() === '') {
+        console.warn("Empty IPFS hash provided");
+        return {
+          title: "Invalid Note",
+          content: "No IPFS hash found",
+        };
+      }
+
+      // Try multiple IPFS gateways to avoid CORS and rate limiting
+      const gateways = [
+        `https://ipfs.io/ipfs/${ipfsHash}`,
+        `https://cloudflare-ipfs.com/ipfs/${ipfsHash}`,
+        `https://gateway.pinata.cloud/ipfs/${ipfsHash}`,
+        `https://dweb.link/ipfs/${ipfsHash}`
+      ];
+
+      for (const gateway of gateways) {
+        try {
+          console.log(`Trying gateway: ${gateway}`);
+          const response = await fetch(gateway, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            },
+            // Add timeout to prevent hanging
+            signal: AbortSignal.timeout(10000) // 10 second timeout
+          });
+
+          if (response.ok) {
+            const jsonData = await response.json();
+            console.log(`✅ Successfully fetched from: ${gateway}`);
+            return {
+              title: jsonData.title || "Untitled Note",
+              content: jsonData.content || "No content found",
+            };
+          }
+        } catch (gatewayError) {
+          console.warn(`Gateway ${gateway} failed:`, gatewayError.message);
+          continue; // Try next gateway
+        }
+      }
+
+      // If all gateways fail, return fallback
+      throw new Error("All IPFS gateways failed");
     } catch (error) {
       console.error("Error fetching note content:", error);
       return {
         title: "Error loading title",
-        content: "Error loading content",
+        content: "Error loading content - IPFS temporarily unavailable",
       };
     }
   };
@@ -106,19 +143,26 @@ function App() {
       const contract = await getContract();
       const myNotes = await contract.getMyNotes();
 
-      const notesArray = await Promise.all(
-        myNotes.map(async (note) => {
-          const noteData = await fetchNoteContent(note.ipfsHash);
-          return {
-            id: note.id.toString(),
-            ipfsHash: note.ipfsHash,
-            owner: note.owner,
-            timestamp: note.timestamp.toString(),
-            title: noteData.title,
-            content: noteData.content,
-          };
-        })
-      );
+      // Process notes sequentially with delay to avoid rate limiting
+      const notesArray = [];
+      for (let i = 0; i < myNotes.length; i++) {
+        const note = myNotes[i];
+        
+        // Add delay between requests to avoid rate limiting
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
+        }
+        
+        const noteData = await fetchNoteContent(note.ipfsHash);
+        notesArray.push({
+          id: note.id.toString(),
+          ipfsHash: note.ipfsHash,
+          owner: note.owner,
+          timestamp: note.timestamp.toString(),
+          title: noteData.title,
+          content: noteData.content,
+        });
+      }
 
       setNotes(notesArray);
     } catch (error) {
