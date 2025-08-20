@@ -400,21 +400,25 @@ function App() {
     <div className="min-h-screen bg-gray-900">
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
-        <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-8 mb-6 shadow-2xl shadow-purple-500/10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-100 mb-2 bg-gradient-to-r from-emerald-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+        <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-4 sm:p-6 lg:p-8 mb-6 shadow-2xl shadow-purple-500/10">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* Title Section */}
+            <div className="text-center lg:text-left">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-100 mb-2 bg-gradient-to-r from-emerald-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 Web3 Notes
               </h1>
-              <p className="text-gray-300">
+              <p className="text-gray-300 text-sm sm:text-base">
                 Decentralized • Immutable • Secure
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex bg-gray-700/50 rounded-xl p-1 border border-purple-500/20">
+            
+            {/* Navigation and Wallet Section */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+              {/* Tab Navigation */}
+              <div className="flex bg-gray-700/50 rounded-xl p-1 border border-purple-500/20 w-full sm:w-auto">
                 <button
                   onClick={() => setCurrentView("dashboard")}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                     currentView === "dashboard"
                       ? "bg-gradient-to-r from-emerald-500 to-purple-500 text-white shadow-lg"
                       : "text-gray-400 hover:text-gray-200"
@@ -424,7 +428,7 @@ function App() {
                 </button>
                 <button
                   onClick={() => setCurrentView("calendar")}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                     currentView === "calendar"
                       ? "bg-gradient-to-r from-emerald-500 to-purple-500 text-white shadow-lg"
                       : "text-gray-400 hover:text-gray-200"
@@ -433,11 +437,13 @@ function App() {
                   Calendar
                 </button>
               </div>
-              <div className="text-right">
-                <div className="text-emerald-400 text-sm mb-1 font-medium">
+              
+              {/* Wallet Info */}
+              <div className="text-center sm:text-right">
+                <div className="text-emerald-400 text-xs sm:text-sm mb-1 font-medium">
                   ● Connected
                 </div>
-                <div className="text-gray-100 font-mono text-sm bg-gray-700/50 px-4 py-2 rounded-lg border border-emerald-500/30 shadow-lg shadow-emerald-500/10">
+                <div className="text-gray-100 font-mono text-xs sm:text-sm bg-gray-700/50 px-3 sm:px-4 py-2 rounded-lg border border-emerald-500/30 shadow-lg shadow-emerald-500/10">
                   {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
                 </div>
               </div>
@@ -449,7 +455,7 @@ function App() {
         {currentView === "dashboard" && (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
               <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 shadow-2xl shadow-purple-500/10">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-purple-500 rounded-xl flex items-center justify-center">
@@ -581,7 +587,7 @@ function App() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   {notes.slice(0, 6).map((note, i) => (
                     <div
                       key={i}
@@ -742,7 +748,7 @@ function App() {
         {/* Floating Add Button */}
         <button
           onClick={() => setShowAddModal(true)}
-          className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-emerald-500 to-purple-500 text-white rounded-full shadow-2xl shadow-emerald-500/25 hover:from-emerald-400 hover:to-purple-400 transition-all duration-300 transform hover:scale-110 flex items-center justify-center z-50"
+          className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-emerald-500 to-purple-500 text-white rounded-full shadow-2xl shadow-emerald-500/25 hover:from-emerald-400 hover:to-purple-400 transition-all duration-300 transform hover:scale-110 flex items-center justify-center z-50"
         >
           <svg
             className="w-8 h-8"
@@ -762,7 +768,7 @@ function App() {
         {/* Add Note Modal */}
         {showAddModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-8 max-w-2xl w-full shadow-2xl shadow-purple-500/10">
+            <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-4 sm:p-6 lg:p-8 max-w-2xl w-full shadow-2xl shadow-purple-500/10 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-100 bg-gradient-to-r from-emerald-400 to-purple-400 bg-clip-text text-transparent">
                   Create New Note
@@ -858,7 +864,7 @@ function App() {
         {/* Delete Confirmation Modal */}
         {showDeleteModal && noteToDelete && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-red-500/20 p-8 max-w-md w-full shadow-2xl shadow-red-500/10">
+            <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-red-500/20 p-4 sm:p-6 lg:p-8 max-w-md w-full shadow-2xl shadow-red-500/10 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-100 bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">
                   Delete Note
