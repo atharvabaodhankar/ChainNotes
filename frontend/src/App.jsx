@@ -8,6 +8,8 @@ const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
 
 function App() {
   const [notes, setNotes] = useState([]);
+  const [fullscreenNote, setFullscreenNote] = useState(null);
+  const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [noteTitle, setNoteTitle] = useState("");
   const [noteContent, setNoteContent] = useState("");
   const [loadingNotes, setLoadingNotes] = useState(false);
@@ -401,6 +403,16 @@ function App() {
     );
   }
 
+  // ...existing code...
+  const openFullscreen = (note) => {
+    setFullscreenNote(note);
+    setFullscreenOpen(true);
+  };
+  const closeFullscreen = () => {
+    setFullscreenOpen(false);
+    setTimeout(() => setFullscreenNote(null), 300);
+  };
+
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="max-w-6xl mx-auto p-6">
@@ -596,7 +608,8 @@ function App() {
                   {notes.slice(0, 6).map((note, i) => (
                     <div
                       key={i}
-                      className="bg-gray-700/30 border border-purple-500/20 rounded-xl p-6 hover:border-emerald-500/40 hover:bg-gray-700/50 transition-all duration-300 group backdrop-blur-sm shadow-lg hover:shadow-emerald-500/10"
+                      className="bg-gray-700/30 border border-purple-500/20 rounded-xl p-6 hover:border-emerald-500/40 hover:bg-gray-700/50 transition-all duration-300 group backdrop-blur-sm shadow-lg hover:shadow-emerald-500/10 cursor-pointer"
+                      onClick={() => openFullscreen(note)}
                     >
                       <div className="flex items-start justify-between mb-3">
                         <span className="bg-gradient-to-r from-emerald-500 to-purple-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
@@ -609,7 +622,7 @@ function App() {
                             ).toLocaleDateString()}
                           </span>
                           <button
-                            onClick={() => handleDeleteClick(note)}
+                            onClick={e => { e.stopPropagation(); handleDeleteClick(note); }}
                             className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all duration-300 p-1 rounded-lg hover:bg-red-500/10"
                             title="Delete note"
                           >
@@ -661,6 +674,28 @@ function App() {
                 </div>
               )}
             </div>
+            {fullscreenNote && (
+              <div className={`fullscreen-modal${fullscreenOpen ? ' open' : ''}`} onClick={closeFullscreen}>
+                <div className="modal-content" onClick={e => e.stopPropagation()}>
+                  <button className="close-btn" onClick={closeFullscreen}>&times;</button>
+                  <h2 className="text-2xl font-bold mb-2">#{fullscreenNote.id} {fullscreenNote.title}</h2>
+                  <div className="text-gray-400 mb-4">{new Date(Number(fullscreenNote.timestamp) * 1000).toLocaleDateString()}</div>
+                  <div className="text-emerald-400 mb-2">{fullscreenNote.ipfsHash ? '🔒 Encrypted' : ''}</div>
+                  <div className="text-gray-100 text-lg whitespace-pre-line mb-4">{fullscreenNote.content}</div>
+                  <a
+                    href={`https://gateway.pinata.cloud/ipfs/${fullscreenNote.ipfsHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-400 hover:text-emerald-300 text-xs inline-flex items-center gap-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    View on IPFS
+                  </a>
+                </div>
+              </div>
+            )}
           </>
         )}
 
