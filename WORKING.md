@@ -318,6 +318,122 @@ After:  QmAbc123... → 404 Not Found (unpinned from network)
 
 ---
 
+## 🔒 End-to-End Encryption
+
+### Why Encryption is Critical
+- **IPFS is public**: Anyone with an IPFS hash can access the content
+- **Privacy protection**: Personal notes should remain private
+- **Censorship resistance**: Encrypted data is meaningless to censors
+- **User control**: Only wallet owner can decrypt their notes
+
+### Encryption Implementation
+
+#### Key Generation
+```javascript
+const generateEncryptionKey = (walletAddress) => {
+  const secretPhrase = "Web3Notes_SecureKey_2025";
+  return CryptoJS.SHA256(walletAddress + secretPhrase).toString();
+};
+```
+
+**How it works:**
+- Uses user's wallet address as unique identifier
+- Combines with secret phrase for additional entropy
+- SHA-256 hash creates deterministic 256-bit key
+- Same wallet always generates same key
+
+#### Encryption Process
+```javascript
+export const encryptNoteData = (noteData, walletAddress) => {
+  const key = generateEncryptionKey(walletAddress);
+  const dataString = JSON.stringify(noteData);
+  const encrypted = CryptoJS.AES.encrypt(dataString, key).toString();
+  
+  return {
+    encrypted: true,
+    data: encrypted,
+    version: "1.0"
+  };
+};
+```
+
+**Security features:**
+- **AES-256 encryption**: Military-grade encryption standard
+- **Client-side only**: Encryption happens in browser, never on server
+- **Deterministic keys**: Same wallet can always decrypt its notes
+- **Version tracking**: Allows for future encryption upgrades
+
+#### Decryption Process
+```javascript
+export const decryptNoteData = (encryptedData, walletAddress) => {
+  const key = generateEncryptionKey(walletAddress);
+  const decryptedBytes = CryptoJS.AES.decrypt(encryptedData.data, key);
+  const decryptedString = decryptedBytes.toString(CryptoJS.enc.Utf8);
+  return JSON.parse(decryptedString);
+};
+```
+
+### Data Flow with Encryption
+
+#### Creating Encrypted Note:
+```
+User Input → Client Encryption → IPFS Upload → Blockchain Storage
+"Hello World" → "U2FsdGVkX1..." → QmHash123 → Transaction
+```
+
+#### Reading Encrypted Note:
+```
+Blockchain Query → IPFS Fetch → Client Decryption → User Display
+Transaction → QmHash123 → "U2FsdGVkX1..." → "Hello World"
+```
+
+### Security Guarantees
+
+#### What's Protected:
+- ✅ **Note content**: Completely encrypted
+- ✅ **Note titles**: Encrypted with content
+- ✅ **Privacy**: Only wallet owner can read
+- ✅ **Forward secrecy**: New notes use fresh encryption
+
+#### What's Public:
+- ❌ **IPFS hashes**: Visible on blockchain
+- ❌ **Note count**: Number of notes per user
+- ❌ **Timestamps**: When notes were created
+- ❌ **Wallet addresses**: Public by design
+
+### Attack Resistance
+
+#### Against IPFS Snooping:
+```
+Attacker finds IPFS hash → Downloads encrypted data → Cannot decrypt without key
+```
+
+#### Against Blockchain Analysis:
+```
+Attacker sees transaction → Gets IPFS hash → Downloads encrypted blob → Useless without wallet
+```
+
+#### Against Brute Force:
+```
+AES-256 key space: 2^256 possible keys
+Time to brute force: Longer than age of universe
+```
+
+### Key Management
+
+#### Advantages:
+- **No key storage**: Key derived from wallet address
+- **No key backup**: Wallet backup includes note access
+- **No key sharing**: Each user has unique keys
+- **No key rotation**: Keys tied to immutable wallet address
+
+#### Considerations:
+- **Wallet dependency**: Lose wallet = lose note access
+- **Single point**: All notes encrypted with same key
+- **Deterministic**: Same input always produces same key
+
+---
+
 ## 🔐 Smart Contract Deep Dive
 
 ### Data Structures

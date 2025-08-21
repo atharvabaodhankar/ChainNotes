@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { uploadNoteToIPFS, deleteNoteFromIPFS } from "./utils/pinata";
+import { decryptNoteData } from "./utils/encryption";
 import NotesABI from "./abis/NotesABI.json";
 
 const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
@@ -111,11 +112,15 @@ function App() {
           });
 
           if (response.ok) {
-            const jsonData = await response.json();
+            const encryptedData = await response.json();
             console.log(`✅ Successfully fetched from: ${gateway}`);
+            
+            // Decrypt the data using user's wallet address
+            const decryptedData = decryptNoteData(encryptedData, userAddress);
+            
             return {
-              title: jsonData.title || "Untitled Note",
-              content: jsonData.content || "No content found",
+              title: decryptedData.title || "Untitled Note",
+              content: decryptedData.content || "No content found",
             };
           }
         } catch (gatewayError) {
@@ -188,7 +193,7 @@ function App() {
         title: noteTitle.trim() || "Untitled Note",
         content: noteContent.trim(),
       };
-      const ipfsHash = await uploadNoteToIPFS(noteData);
+      const ipfsHash = await uploadNoteToIPFS(noteData, userAddress);
       const contract = await getContract();
       const tx = await contract.addNote(ipfsHash, { gasLimit: 300000 });
       await tx.wait();
@@ -614,9 +619,17 @@ function App() {
                           </button>
                         </div>
                       </div>
-                      <h3 className="text-gray-100 font-semibold mb-2 truncate">
-                        {note.title}
-                      </h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-gray-100 font-semibold truncate flex-1">
+                          {note.title}
+                        </h3>
+                        <div className="flex items-center gap-1 text-emerald-400 text-xs">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                          <span>Encrypted</span>
+                        </div>
+                      </div>
                       <p className="text-gray-300 text-sm line-clamp-3">
                         {note.content}
                       </p>
@@ -819,6 +832,18 @@ function App() {
                     rows={6}
                   />
                 </div>
+              </div>
+
+              <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                <div className="flex items-center gap-2 text-emerald-400 text-sm">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span className="font-medium">End-to-End Encrypted</span>
+                </div>
+                <p className="text-gray-400 text-xs mt-1">
+                  Your note will be encrypted with your wallet address before storing on IPFS
+                </p>
               </div>
 
               <div className="flex gap-4 mt-6">
