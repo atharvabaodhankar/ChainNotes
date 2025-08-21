@@ -675,13 +675,13 @@ function App() {
               )}
             </div>
             {fullscreenNote && (
-              <div className={`fullscreen-modal${fullscreenOpen ? ' open' : ''}`} onClick={closeFullscreen}>
-                <div className="modal-content" onClick={e => e.stopPropagation()}>
-                  <button className="close-btn" onClick={closeFullscreen}>&times;</button>
+              <div className={`centered-modal${fullscreenOpen ? ' open' : ''}`} onClick={closeFullscreen}>
+                <div className="centered-modal-content" onClick={e => e.stopPropagation()}>
+                  <button className="centered-close-btn" onClick={closeFullscreen}>&times;</button>
                   <h2 className="text-2xl font-bold mb-2">#{fullscreenNote.id} {fullscreenNote.title}</h2>
                   <div className="text-gray-400 mb-4">{new Date(Number(fullscreenNote.timestamp) * 1000).toLocaleDateString()}</div>
                   <div className="text-emerald-400 mb-2">{fullscreenNote.ipfsHash ? '🔒 Encrypted' : ''}</div>
-                  <div className="text-gray-100 text-lg whitespace-pre-line mb-4">{fullscreenNote.content}</div>
+                  <div className="text-gray-100 text-base whitespace-pre-line mb-4 max-h-96 overflow-y-auto">{fullscreenNote.content}</div>
                   <a
                     href={`https://gateway.pinata.cloud/ipfs/${fullscreenNote.ipfsHash}`}
                     target="_blank"
