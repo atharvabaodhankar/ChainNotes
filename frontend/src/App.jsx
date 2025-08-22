@@ -25,6 +25,55 @@ function App() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState(null);
 
+  // Polygon Amoy testnet configuration
+  const AMOY_CHAIN_ID = "80002";
+  const AMOY_NETWORK = {
+    chainId: "0x138C2", // 80002 in hex
+    chainName: "Polygon Amoy Testnet",
+    nativeCurrency: {
+      name: "MATIC",
+      symbol: "MATIC",
+      decimals: 18
+    },
+    rpcUrls: [
+      "https://rpc-amoy.polygon.technology/",
+      "https://polygon-amoy.blockpi.network/v1/rpc/public",
+      "https://polygon-amoy.public.blastapi.io",
+      "https://amoy.drpc.org"
+    ],
+    blockExplorerUrls: ["https://www.oklink.com/amoy"]
+  };
+
+  const addAmoyNetwork = async () => {
+    try {
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [AMOY_NETWORK]
+      });
+      return true;
+    } catch (error) {
+      console.error("Error adding Amoy network:", error);
+      return false;
+    }
+  };
+
+  const switchToAmoyNetwork = async () => {
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: `0x${parseInt(AMOY_CHAIN_ID).toString(16)}` }]
+      });
+      return true;
+    } catch (error) {
+      // This error code indicates that the chain has not been added to MetaMask
+      if (error.code === 4902) {
+        return await addAmoyNetwork();
+      }
+      console.error("Error switching to Amoy network:", error);
+      return false;
+    }
+  };
+
   const connectWallet = async () => {
     try {
       if (!window.ethereum) {
@@ -39,10 +88,22 @@ function App() {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const network = await provider.getNetwork();
 
-      // Check if on localhost network (31337)
-      if (network.chainId.toString() !== "31337") {
-        setNetworkError("Please switch to localhost network (Chain ID: 31337)");
-        return;
+      // Check if on Polygon Amoy testnet (80002)
+      if (network.chainId.toString() !== AMOY_CHAIN_ID) {
+        setNetworkError("Please switch to Polygon Amoy Testnet");
+        
+        // Prompt user to switch to Amoy network
+        const switched = await switchToAmoyNetwork();
+        if (!switched) {
+          return;
+        }
+        
+        // Verify the switch was successful
+        const updatedNetwork = await provider.getNetwork();
+        if (updatedNetwork.chainId.toString() !== AMOY_CHAIN_ID) {
+          setNetworkError("Failed to switch to Polygon Amoy Testnet");
+          return;
+        }
       }
 
       setIsConnected(true);
@@ -54,10 +115,45 @@ function App() {
     }
   };
 
+  // Memoize the contract to prevent infinite re-renders
   const getContract = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    return new ethers.Contract(contractAddress, NotesABI, signer);
+    try {
+      // Try multiple providers in case one fails
+      let provider;
+      let error;
+      
+      // First try the default provider
+      try {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.getBlockNumber(); // Test if provider is working
+        console.log("✅ Using default MetaMask provider");
+      } catch (e) {
+        error = e;
+        console.warn("Default provider failed, trying fallback RPC URLs", e);
+        
+        // Try fallback RPC URLs directly
+        for (const rpcUrl of AMOY_NETWORK.rpcUrls) {
+          try {
+            provider = new ethers.JsonRpcProvider(rpcUrl);
+            await provider.getBlockNumber(); // Test if provider is working
+            console.log(`✅ Using fallback RPC: ${rpcUrl}`);
+            break;
+          } catch (rpcError) {
+            console.warn(`RPC ${rpcUrl} failed:`, rpcError);
+          }
+        }
+      }
+      
+      if (!provider) {
+        throw error || new Error("All providers failed");
+      }
+      
+      const signer = await provider.getSigner();
+      return new ethers.Contract(contractAddress, NotesABI, signer);
+    } catch (error) {
+      console.error("Failed to get contract:", error);
+      throw error;
+    }
   };
 
   const checkConnection = async () => {
@@ -72,10 +168,12 @@ function App() {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const network = await provider.getNetwork();
 
-        if (network.chainId.toString() === "31337") {
+        if (network.chainId.toString() === AMOY_CHAIN_ID) {
           setIsConnected(true);
           setUserAddress(accounts[0]);
           loadNotes();
+        } else {
+          setNetworkError("Please switch to Polygon Amoy Testnet");
         }
       }
     } catch (error) {
@@ -310,7 +408,7 @@ function App() {
         window.ethereum.removeAllListeners("chainChanged");
       }
     };
-  }, [isConnected]);
+  }, []); // Remove the dependencies that cause infinite loop
 
   if (!window.ethereum) {
     return (
@@ -377,6 +475,14 @@ function App() {
           {networkError && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
               <p className="text-red-300 text-sm">{networkError}</p>
+              {networkError.includes("Polygon Amoy") && (
+                <button
+                  onClick={switchToAmoyNetwork}
+                  className="mt-3 w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg font-medium text-sm hover:from-purple-400 hover:to-pink-400 transition-all duration-300"
+                >
+                  Switch to Polygon Amoy
+                </button>
+              )}
             </div>
           )}
 
@@ -458,8 +564,13 @@ function App() {
               
               {/* Wallet Info */}
               <div className="text-center sm:text-right">
-                <div className="text-emerald-400 text-xs sm:text-sm mb-1 font-medium">
-                  ● Connected
+                <div className="flex items-center justify-center sm:justify-end gap-2">
+                  <div className="text-emerald-400 text-xs sm:text-sm font-medium">
+                    ● Connected
+                  </div>
+                  <div className="text-purple-400 text-xs sm:text-sm font-medium">
+                    (Polygon Amoy)
+                  </div>
                 </div>
                 <div className="text-gray-100 font-mono text-xs sm:text-sm bg-gray-700/50 px-3 sm:px-4 py-2 rounded-lg border border-emerald-500/30 shadow-lg shadow-emerald-500/10">
                   {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
