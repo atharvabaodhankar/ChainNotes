@@ -5,7 +5,7 @@ import { uploadNoteToIPFS, deleteNoteFromIPFS } from "./utils/pinata";
 import { decryptNoteData } from "./utils/encryption";
 import NotesABI from "./abis/NotesABI.json";
 
-const CONTRACT_ADDRESS = "0xa18215949e70d9045620af5d9ee5564308690321";
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
 
 function App() {
   const [notes, setNotes] = useState([]);
@@ -216,54 +216,47 @@ function App() {
     }
   };
 
-  const loadNotes = async () => {
-    if (!isConnected) return;
+const loadNotes = async () => {
+  try {
+    const contract = await getContract();
+    const myNotes = await contract.getMyNotes();
 
-    setLoadingNotes(true);
-    try {
-      const contract = await getContract();
-      const myNotes = await contract.getMyNotes();
+    // Fetch content from IPFS for each note
+    const enrichedNotes = await Promise.all(
+      myNotes.map(async (note) => {
+        try {
+          const ipfsUrl = `https://ipfs.io/ipfs/${note.ipfsHash}`;
+          const res = await fetch(ipfsUrl);
+          const data = await res.json();
 
-      // Process notes sequentially with delay to avoid rate limiting
-      const notesArray = [];
-      for (let i = 0; i < myNotes.length; i++) {
-        const note = myNotes[i];
-
-        // Skip deleted notes (empty IPFS hash or empty owner)
-        if (
-          !note.ipfsHash ||
-          note.ipfsHash.trim() === "" ||
-          !note.owner ||
-          note.owner === "0x0000000000000000000000000000000000000000"
-        ) {
-          console.log(`Skipping deleted note #${note.id}`);
-          continue;
+          return {
+            id: Number(note.id),
+            ipfsHash: note.ipfsHash,
+            owner: note.owner,
+            timestamp: Number(note.timestamp),
+            title: data.title || "Untitled",
+            content: data.content || "(empty note)",
+          };
+        } catch (err) {
+          console.error("❌ Failed to fetch IPFS data for", note.ipfsHash, err);
+          return {
+            id: Number(note.id),
+            ipfsHash: note.ipfsHash,
+            owner: note.owner,
+            timestamp: Number(note.timestamp),
+            title: "⚠️ Failed to load",
+            content: "",
+          };
         }
+      })
+    );
 
-        // Add delay between requests to avoid rate limiting
-        if (notesArray.length > 0) {
-          await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms delay
-        }
+    setNotes(enrichedNotes);
+  } catch (error) {
+    console.error("Error loading notes:", error);
+  }
+};
 
-        const noteData = await fetchNoteContent(note.ipfsHash);
-        notesArray.push({
-          id: note.id.toString(),
-          ipfsHash: note.ipfsHash,
-          owner: note.owner,
-          timestamp: note.timestamp.toString(),
-          title: noteData.title,
-          content: noteData.content,
-        });
-      }
-
-      setNotes(notesArray);
-    } catch (error) {
-      console.log("No notes found or error loading:", error.message);
-      setNotes([]);
-    } finally {
-      setLoadingNotes(false);
-    }
-  };
 
   const addNote = async () => {
     if (!noteContent.trim() || !isConnected) return;
