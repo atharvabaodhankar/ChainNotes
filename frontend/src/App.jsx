@@ -296,7 +296,7 @@ function App() {
       };
       const ipfsHash = await uploadNoteToIPFS(noteData, userAddress);
       const contract = await getContract();
-      const tx = await contract.addNote(ipfsHash, { gasLimit: 300000 });
+      const tx = await contract.addNote(ipfsHash);
       await tx.wait();
 
       setNoteTitle("");
@@ -305,7 +305,17 @@ function App() {
       loadNotes();
     } catch (error) {
       console.error("Error adding note:", error);
-      alert("Failed to add note. Please try again.");
+      let errorMessage = "Failed to add note. Please try again.";
+      if (error.code === "ACTION_REJECTED") {
+        errorMessage = "Transaction rejected by user.";
+      } else if (error.code === "INSUFFICIENT_FUNDS") {
+        errorMessage = "Insufficient funds for transaction.";
+      } else if (error.data && error.data.message) {
+        errorMessage = `Transaction failed: ${error.data.message}`;
+      } else if (error.message) {
+        errorMessage = `Transaction failed: ${error.message}`;
+      }
+      alert(errorMessage);
     } finally {
       setIsAddingNote(false);
     }
