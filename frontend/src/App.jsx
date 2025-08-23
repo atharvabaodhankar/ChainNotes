@@ -5,7 +5,7 @@ import { uploadNoteToIPFS, deleteNoteFromIPFS } from "./utils/pinata";
 import { decryptNoteData } from "./utils/encryption";
 import NotesABI from "./abis/NotesABI.json";
 
-const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
+const CONTRACT_ADDRESS = "0xa18215949e70d9045620af5d9ee5564308690321";
 
 function App() {
   const [notes, setNotes] = useState([]);
@@ -33,22 +33,22 @@ function App() {
     nativeCurrency: {
       name: "MATIC",
       symbol: "MATIC",
-      decimals: 18
+      decimals: 18,
     },
     rpcUrls: [
       "https://rpc-amoy.polygon.technology/",
       "https://polygon-amoy.blockpi.network/v1/rpc/public",
       "https://polygon-amoy.public.blastapi.io",
-      "https://amoy.drpc.org"
+      "https://amoy.drpc.org",
     ],
-    blockExplorerUrls: ["https://www.oklink.com/amoy"]
+    blockExplorerUrls: ["https://www.oklink.com/amoy"],
   };
 
   const addAmoyNetwork = async () => {
     try {
       await window.ethereum.request({
         method: "wallet_addEthereumChain",
-        params: [AMOY_NETWORK]
+        params: [AMOY_NETWORK],
       });
       return true;
     } catch (error) {
@@ -61,7 +61,7 @@ function App() {
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: `0x${parseInt(AMOY_CHAIN_ID).toString(16)}` }]
+        params: [{ chainId: `0x${parseInt(AMOY_CHAIN_ID).toString(16)}` }],
       });
       return true;
     } catch (error) {
@@ -91,13 +91,13 @@ function App() {
       // Check if on Polygon Amoy testnet (80002)
       if (network.chainId.toString() !== AMOY_CHAIN_ID) {
         setNetworkError("Please switch to Polygon Amoy Testnet");
-        
+
         // Prompt user to switch to Amoy network
         const switched = await switchToAmoyNetwork();
         if (!switched) {
           return;
         }
-        
+
         // Verify the switch was successful
         const updatedNetwork = await provider.getNetwork();
         if (updatedNetwork.chainId.toString() !== AMOY_CHAIN_ID) {
@@ -116,45 +116,20 @@ function App() {
   };
 
   // Memoize the contract to prevent infinite re-renders
-  const getContract = async () => {
-    try {
-      // Try multiple providers in case one fails
-      let provider;
-      let error;
-      
-      // First try the default provider
-      try {
-        provider = new ethers.BrowserProvider(window.ethereum);
-        await provider.getBlockNumber(); // Test if provider is working
-        console.log("✅ Using default MetaMask provider");
-      } catch (e) {
-        error = e;
-        console.warn("Default provider failed, trying fallback RPC URLs", e);
-        
-        // Try fallback RPC URLs directly
-        for (const rpcUrl of AMOY_NETWORK.rpcUrls) {
-          try {
-            provider = new ethers.JsonRpcProvider(rpcUrl);
-            await provider.getBlockNumber(); // Test if provider is working
-            console.log(`✅ Using fallback RPC: ${rpcUrl}`);
-            break;
-          } catch (rpcError) {
-            console.warn(`RPC ${rpcUrl} failed:`, rpcError);
-          }
-        }
-      }
-      
-      if (!provider) {
-        throw error || new Error("All providers failed");
-      }
-      
-      const signer = await provider.getSigner();
-      return new ethers.Contract(contractAddress, NotesABI, signer);
-    } catch (error) {
-      console.error("Failed to get contract:", error);
-      throw error;
-    }
-  };
+  async function getContract() {
+    if (!window.ethereum) throw new Error("MetaMask not installed");
+
+    // ✅ Use MetaMask provider
+    const provider = new ethers.BrowserProvider(window.ethereum);
+
+    // ✅ Request account access
+    await provider.send("eth_requestAccounts", []);
+
+    // ✅ Get signer from MetaMask
+    const signer = await provider.getSigner();
+
+    return new ethers.Contract(CONTRACT_ADDRESS , NotesABI, signer);
+  }
 
   const checkConnection = async () => {
     try {
@@ -184,7 +159,7 @@ function App() {
   const fetchNoteContent = async (ipfsHash) => {
     try {
       // Check if ipfsHash is valid
-      if (!ipfsHash || ipfsHash.trim() === '') {
+      if (!ipfsHash || ipfsHash.trim() === "") {
         console.warn("Empty IPFS hash provided");
         return {
           title: "Invalid Note",
@@ -197,28 +172,28 @@ function App() {
         `https://ipfs.io/ipfs/${ipfsHash}`,
         `https://cloudflare-ipfs.com/ipfs/${ipfsHash}`,
         `https://gateway.pinata.cloud/ipfs/${ipfsHash}`,
-        `https://dweb.link/ipfs/${ipfsHash}`
+        `https://dweb.link/ipfs/${ipfsHash}`,
       ];
 
       for (const gateway of gateways) {
         try {
           console.log(`Trying gateway: ${gateway}`);
           const response = await fetch(gateway, {
-            method: 'GET',
+            method: "GET",
             headers: {
-              'Accept': 'application/json',
+              Accept: "application/json",
             },
             // Add timeout to prevent hanging
-            signal: AbortSignal.timeout(10000) // 10 second timeout
+            signal: AbortSignal.timeout(10000), // 10 second timeout
           });
 
           if (response.ok) {
             const encryptedData = await response.json();
             console.log(`✅ Successfully fetched from: ${gateway}`);
-            
+
             // Decrypt the data using user's wallet address
             const decryptedData = decryptNoteData(encryptedData, userAddress);
-            
+
             return {
               title: decryptedData.title || "Untitled Note",
               content: decryptedData.content || "No content found",
@@ -253,18 +228,23 @@ function App() {
       const notesArray = [];
       for (let i = 0; i < myNotes.length; i++) {
         const note = myNotes[i];
-        
+
         // Skip deleted notes (empty IPFS hash or empty owner)
-        if (!note.ipfsHash || note.ipfsHash.trim() === '' || !note.owner || note.owner === '0x0000000000000000000000000000000000000000') {
+        if (
+          !note.ipfsHash ||
+          note.ipfsHash.trim() === "" ||
+          !note.owner ||
+          note.owner === "0x0000000000000000000000000000000000000000"
+        ) {
           console.log(`Skipping deleted note #${note.id}`);
           continue;
         }
-        
+
         // Add delay between requests to avoid rate limiting
         if (notesArray.length > 0) {
-          await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
+          await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms delay
         }
-        
+
         const noteData = await fetchNoteContent(note.ipfsHash);
         notesArray.push({
           id: note.id.toString(),
@@ -296,8 +276,15 @@ function App() {
       };
       const ipfsHash = await uploadNoteToIPFS(noteData, userAddress);
       const contract = await getContract();
-      const tx = await contract.addNote(ipfsHash);
-      await tx.wait();
+      try {
+        const tx = await contract.addNote(ipfsHash, { gasLimit: 500000 });
+        await tx.wait();
+      } catch (err) {
+        console.error(
+          "Revert reason:",
+          err.reason || err.error?.message || err
+        );
+      }
 
       setNoteTitle("");
       setNoteContent("");
@@ -327,23 +314,27 @@ function App() {
     setDeletingNoteId(noteId);
     try {
       // Find the note to get its IPFS hash
-      const noteToDeleteData = notes.find(note => note.id === noteId);
-      
+      const noteToDeleteData = notes.find((note) => note.id === noteId);
+
       // 1. Delete from blockchain first
       const contract = await getContract();
       const tx = await contract.deleteNote(noteId, { gasLimit: 300000 });
       await tx.wait();
-      
+
       // 2. Delete from Pinata/IPFS (optional - won't fail if this fails)
       if (noteToDeleteData?.ipfsHash) {
-        const pinataDeleted = await deleteNoteFromIPFS(noteToDeleteData.ipfsHash);
+        const pinataDeleted = await deleteNoteFromIPFS(
+          noteToDeleteData.ipfsHash
+        );
         if (pinataDeleted) {
           console.log("✅ Note deleted from both blockchain and IPFS");
         } else {
-          console.log("⚠️ Note deleted from blockchain, but IPFS deletion failed");
+          console.log(
+            "⚠️ Note deleted from blockchain, but IPFS deletion failed"
+          );
         }
       }
-      
+
       setShowDeleteModal(false);
       setNoteToDelete(null);
       loadNotes();
@@ -545,7 +536,7 @@ function App() {
                 Decentralized • Immutable • Secure
               </p>
             </div>
-            
+
             {/* Navigation and Wallet Section */}
             <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
               {/* Tab Navigation */}
@@ -571,7 +562,7 @@ function App() {
                   Calendar
                 </button>
               </div>
-              
+
               {/* Wallet Info */}
               <div className="text-center sm:text-right">
                 <div className="flex items-center justify-center sm:justify-end gap-2">
@@ -744,12 +735,25 @@ function App() {
                             ).toLocaleDateString()}
                           </span>
                           <button
-                            onClick={e => { e.stopPropagation(); handleDeleteClick(note); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClick(note);
+                            }}
                             className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all duration-300 p-1 rounded-lg hover:bg-red-500/10"
                             title="Delete note"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
                             </svg>
                           </button>
                         </div>
@@ -759,8 +763,18 @@ function App() {
                           {note.title}
                         </h3>
                         <div className="flex items-center gap-1 text-emerald-400 text-xs">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                            />
                           </svg>
                           <span>Encrypted</span>
                         </div>
@@ -797,21 +811,52 @@ function App() {
               )}
             </div>
             {fullscreenNote && (
-              <div className={`centered-modal${fullscreenOpen ? ' open' : ''}`} onClick={closeFullscreen}>
-                <div className="centered-modal-content" onClick={e => e.stopPropagation()}>
-                  <button className="centered-close-btn" onClick={closeFullscreen}>&times;</button>
-                  <h2 className="text-2xl font-bold mb-2">#{fullscreenNote.id} {fullscreenNote.title}</h2>
-                  <div className="text-gray-400 mb-4">{new Date(Number(fullscreenNote.timestamp) * 1000).toLocaleDateString()}</div>
-                  <div className="text-emerald-400 mb-2">{fullscreenNote.ipfsHash ? '🔒 Encrypted' : ''}</div>
-                  <div className="text-gray-100 text-base whitespace-pre-line mb-4 max-h-96 overflow-y-auto">{fullscreenNote.content}</div>
+              <div
+                className={`centered-modal${fullscreenOpen ? " open" : ""}`}
+                onClick={closeFullscreen}
+              >
+                <div
+                  className="centered-modal-content"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    className="centered-close-btn"
+                    onClick={closeFullscreen}
+                  >
+                    &times;
+                  </button>
+                  <h2 className="text-2xl font-bold mb-2">
+                    #{fullscreenNote.id} {fullscreenNote.title}
+                  </h2>
+                  <div className="text-gray-400 mb-4">
+                    {new Date(
+                      Number(fullscreenNote.timestamp) * 1000
+                    ).toLocaleDateString()}
+                  </div>
+                  <div className="text-emerald-400 mb-2">
+                    {fullscreenNote.ipfsHash ? "🔒 Encrypted" : ""}
+                  </div>
+                  <div className="text-gray-100 text-base whitespace-pre-line mb-4 max-h-96 overflow-y-auto">
+                    {fullscreenNote.content}
+                  </div>
                   <a
                     href={`https://gateway.pinata.cloud/ipfs/${fullscreenNote.ipfsHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-emerald-400 hover:text-emerald-300 text-xs inline-flex items-center gap-1"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
                     </svg>
                     View on IPFS
                   </a>
@@ -993,13 +1038,24 @@ function App() {
 
               <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                 <div className="flex items-center gap-2 text-emerald-400 text-sm">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
                   </svg>
                   <span className="font-medium">End-to-End Encrypted</span>
                 </div>
                 <p className="text-gray-400 text-xs mt-1">
-                  Your note will be encrypted with your wallet address before storing on IPFS
+                  Your note will be encrypted with your wallet address before
+                  storing on IPFS
                 </p>
               </div>
 
@@ -1058,8 +1114,18 @@ function App() {
                   }}
                   className="text-gray-400 hover:text-gray-200 transition-colors duration-200"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -1067,19 +1133,37 @@ function App() {
               <div className="mb-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center border border-red-500/30">
-                    <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    <svg
+                      className="w-6 h-6 text-red-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                      />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-gray-100 font-semibold">Are you sure?</h3>
-                    <p className="text-gray-400 text-sm">This action cannot be undone.</p>
+                    <h3 className="text-gray-100 font-semibold">
+                      Are you sure?
+                    </h3>
+                    <p className="text-gray-400 text-sm">
+                      This action cannot be undone.
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="bg-gray-700/30 rounded-xl p-4 border border-red-500/20">
-                  <h4 className="text-gray-100 font-medium mb-2">#{noteToDelete.id} - {noteToDelete.title}</h4>
-                  <p className="text-gray-300 text-sm line-clamp-3">{noteToDelete.content}</p>
+                  <h4 className="text-gray-100 font-medium mb-2">
+                    #{noteToDelete.id} - {noteToDelete.title}
+                  </h4>
+                  <p className="text-gray-300 text-sm line-clamp-3">
+                    {noteToDelete.content}
+                  </p>
                 </div>
               </div>
 
@@ -1105,8 +1189,18 @@ function App() {
                     </>
                   ) : (
                     <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
                       Delete Note
                     </>
