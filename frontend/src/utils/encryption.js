@@ -5,10 +5,10 @@ import CryptoJS from "crypto-js";
  * This ensures each user has a unique encryption key
  */
 const generateEncryptionKey = (walletAddress) => {
-  // Use wallet address + a secret phrase to generate key
-  const secretPhrase = "Web3Notes_SecureKey_2025";
-  return CryptoJS.SHA256(walletAddress + secretPhrase).toString();
+  const secretPhrase = import.meta.env.VITE_SECRET;
+  return CryptoJS.SHA256(walletAddress.toLowerCase() + secretPhrase).toString();
 };
+
 
 /**
  * Encrypt note data before uploading to IPFS

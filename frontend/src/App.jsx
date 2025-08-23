@@ -43,6 +43,15 @@ function App() {
     ],
     blockExplorerUrls: ["https://www.oklink.com/amoy"],
   };
+  useEffect(() => {
+    const init = async () => {
+      await checkConnection(); // ensures userAddress is set
+      if (isConnected && userAddress) {
+        await loadNotes(); // only load notes after wallet is ready
+      }
+    };
+    init();
+  }, [isConnected, userAddress]);
 
   const addAmoyNetwork = async () => {
     try {
@@ -128,33 +137,33 @@ function App() {
     // ✅ Get signer from MetaMask
     const signer = await provider.getSigner();
 
-    return new ethers.Contract(CONTRACT_ADDRESS , NotesABI, signer);
+    return new ethers.Contract(CONTRACT_ADDRESS, NotesABI, signer);
   }
 
   const checkConnection = async () => {
     try {
-      if (!window.ethereum) return;
-
-      const accounts = await window.ethereum.request({
-        method: "eth_accounts",
-      });
-
-      if (accounts.length > 0) {
+      if (window.ethereum) {
         const provider = new ethers.BrowserProvider(window.ethereum);
-        const network = await provider.getNetwork();
+        const accounts = await provider.listAccounts();
 
-        if (network.chainId.toString() === AMOY_CHAIN_ID) {
+        if (accounts.length > 0) {
+          setUserAddress(accounts[0].address);
           setIsConnected(true);
-          setUserAddress(accounts[0]);
-          loadNotes();
+          console.log("✅ Using default MetaMask provider");
         } else {
-          setNetworkError("Please switch to Polygon Amoy Testnet");
+          setIsConnected(false);
         }
       }
     } catch (error) {
       console.error("Error checking connection:", error);
     }
   };
+  useEffect(() => {
+    if (isConnected && userAddress) {
+      console.log("📥 Loading notes for:", userAddress);
+      loadNotes();
+    }
+  }, [isConnected, userAddress]);
 
   const fetchNoteContent = async (ipfsHash) => {
     try {
@@ -216,54 +225,57 @@ function App() {
     }
   };
 
-const loadNotes = async () => {
-  try {
-    const contract = await getContract();
-    const myNotes = await contract.getMyNotes();
-
-    if (!myNotes || myNotes.length === 0) {
-      console.log("📭 No notes found on-chain yet.");
-      setNotes([]);
-      return;
-    }
-
-    const fetchedNotes = [];
-
-    for (const note of myNotes) {
-      try {
-        const ipfsUrl = `https://ipfs.io/ipfs/${note.ipfsHash}`;
-        const response = await fetch(ipfsUrl);
-
-        if (!response.ok) {
-          console.warn(`❌ Failed to fetch ${ipfsUrl}`, response.status);
-          continue;
-        }
-
-        const ipfsJson = await response.json();
-
-        // 🔑 Decrypt here
-        const decrypted = decryptNoteData(ipfsJson, userAddress);
-
-        fetchedNotes.push({
-          id: Number(note.id),
-          ipfsHash: note.ipfsHash,
-          title: decrypted.title || "Untitled Note",
-          content: decrypted.content || "(empty note)",
-          owner: note.owner,
-          timestamp: Number(note.timestamp),
-        });
-      } catch (err) {
-        console.error(`❌ Failed to load note ${note.ipfsHash}`, err);
+  const loadNotes = async () => {
+    try {
+      const contract = await getContract();
+      const myNotes = await contract.getMyNotes();
+      if (!userAddress) {
+        console.warn("⏳ Skipping decryption: wallet not ready yet");
+        return;
       }
+
+      if (!myNotes || myNotes.length === 0) {
+        console.log("📭 No notes found on-chain yet.");
+        setNotes([]);
+        return;
+      }
+
+      const fetchedNotes = [];
+
+      for (const note of myNotes) {
+        try {
+          const ipfsUrl = `https://ipfs.io/ipfs/${note.ipfsHash}`;
+          const response = await fetch(ipfsUrl);
+
+          if (!response.ok) {
+            console.warn(`❌ Failed to fetch ${ipfsUrl}`, response.status);
+            continue;
+          }
+
+          const ipfsJson = await response.json();
+
+          // 🔑 Decrypt here
+          const decrypted = decryptNoteData(ipfsJson, userAddress);
+
+          fetchedNotes.push({
+            id: Number(note.id),
+            ipfsHash: note.ipfsHash,
+            title: decrypted.title || "Untitled Note",
+            content: decrypted.content || "(empty note)",
+            owner: note.owner,
+            timestamp: Number(note.timestamp),
+          });
+        } catch (err) {
+          console.error(`❌ Failed to load note ${note.ipfsHash}`, err);
+        }
+      }
+
+      setNotes(fetchedNotes);
+    } catch (error) {
+      console.error("Error loading notes:", error);
+      setNotes([]);
     }
-
-    setNotes(fetchedNotes);
-  } catch (error) {
-    console.error("Error loading notes:", error);
-    setNotes([]);
-  }
-};
-
+  };
 
   const addNote = async () => {
     if (!noteContent.trim() || !isConnected) return;
