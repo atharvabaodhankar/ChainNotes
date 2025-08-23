@@ -221,39 +221,46 @@ const loadNotes = async () => {
     const contract = await getContract();
     const myNotes = await contract.getMyNotes();
 
-    // Fetch content from IPFS for each note
-    const enrichedNotes = await Promise.all(
-      myNotes.map(async (note) => {
-        try {
-          const ipfsUrl = `https://ipfs.io/ipfs/${note.ipfsHash}`;
-          const res = await fetch(ipfsUrl);
-          const data = await res.json();
+    if (!myNotes || myNotes.length === 0) {
+      console.log("📭 No notes found on-chain yet.");
+      setNotes([]);
+      return;
+    }
 
-          return {
-            id: Number(note.id),
-            ipfsHash: note.ipfsHash,
-            owner: note.owner,
-            timestamp: Number(note.timestamp),
-            title: data.title || "Untitled",
-            content: data.content || "(empty note)",
-          };
-        } catch (err) {
-          console.error("❌ Failed to fetch IPFS data for", note.ipfsHash, err);
-          return {
-            id: Number(note.id),
-            ipfsHash: note.ipfsHash,
-            owner: note.owner,
-            timestamp: Number(note.timestamp),
-            title: "⚠️ Failed to load",
-            content: "",
-          };
+    const fetchedNotes = [];
+
+    for (const note of myNotes) {
+      try {
+        const ipfsUrl = `https://ipfs.io/ipfs/${note.ipfsHash}`;
+        const response = await fetch(ipfsUrl);
+
+        if (!response.ok) {
+          console.warn(`❌ Failed to fetch ${ipfsUrl}`, response.status);
+          continue;
         }
-      })
-    );
 
-    setNotes(enrichedNotes);
+        const ipfsJson = await response.json();
+
+        // 🔑 Decrypt here
+        const decrypted = decryptNoteData(ipfsJson, userAddress);
+
+        fetchedNotes.push({
+          id: Number(note.id),
+          ipfsHash: note.ipfsHash,
+          title: decrypted.title || "Untitled Note",
+          content: decrypted.content || "(empty note)",
+          owner: note.owner,
+          timestamp: Number(note.timestamp),
+        });
+      } catch (err) {
+        console.error(`❌ Failed to load note ${note.ipfsHash}`, err);
+      }
+    }
+
+    setNotes(fetchedNotes);
   } catch (error) {
     console.error("Error loading notes:", error);
+    setNotes([]);
   }
 };
 
