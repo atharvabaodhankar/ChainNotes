@@ -66,7 +66,7 @@ function App() {
     }
   };
 
-  const switchToAmoyNetwork = async () => {
+  const switchToSepoliaNetwork = async () => {
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
@@ -101,8 +101,8 @@ function App() {
       if (network.chainId.toString() !== SEPOLIA_CHAIN_ID) {
         setNetworkError("Please switch to Ethereum Sepolia Testnet");
 
-        // Prompt user to switch to Amoy network
-        const switched = await switchToAmoyNetwork();
+        // Prompt user to switch to Sepolia network
+        const switched = await switchToSepoliaNetwork();
         if (!switched) {
           return;
         }
@@ -488,12 +488,12 @@ function App() {
           {networkError && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
               <p className="text-red-300 text-sm">{networkError}</p>
-              {networkError.includes("Polygon Amoy") && (
+              {networkError.includes("Ethereum Sepolia") && (
                 <button
-                  onClick={switchToAmoyNetwork}
+                  onClick={switchToSepoliaNetwork}
                   className="mt-3 w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg font-medium text-sm hover:from-purple-400 hover:to-pink-400 transition-all duration-300"
                 >
-                  Switch to Polygon Amoy
+                  Switch to Ethereum Sepolia
                 </button>
               )}
             </div>
@@ -582,7 +582,7 @@ function App() {
                     ● Connected
                   </div>
                   <div className="text-purple-400 text-xs sm:text-sm font-medium">
-                    (Polygon Amoy)
+                    (Ethereum Sepolia)
                   </div>
                 </div>
                 <div className="text-gray-100 font-mono text-xs sm:text-sm bg-gray-700/50 px-3 sm:px-4 py-2 rounded-lg border border-emerald-500/30 shadow-lg shadow-emerald-500/10">
