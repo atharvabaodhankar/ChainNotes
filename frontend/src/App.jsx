@@ -83,7 +83,7 @@ function App() {
     }
   }, [isConnected]);
 
-  const addAmoyNetwork = async () => {
+  const addSepoliaNetworkInternal = async () => {
     try {
       await window.ethereum.request({
         method: "wallet_addEthereumChain",
@@ -91,8 +91,28 @@ function App() {
       });
       return true;
     } catch (error) {
-      console.error("Error adding Amoy network:", error);
+      console.error("Error adding Sepolia network:", error);
       return false;
+    }
+  };
+
+  // Function for the login page "Add Sepolia Network" button
+  const addSepoliaNetwork = async () => {
+    try {
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [SEPOLIA_NETWORK],
+      });
+      
+      // After adding, try to switch to it
+      await switchToSepoliaNetwork();
+      
+      // Show success message
+      setNetworkError("");
+      alert("Sepolia network added successfully! You can now connect your wallet.");
+    } catch (error) {
+      console.error("Error adding Sepolia network:", error);
+      alert("Failed to add Sepolia network. Please try again.");
     }
   };
 
@@ -106,7 +126,7 @@ function App() {
     } catch (error) {
       // This error code indicates that the chain has not been added to MetaMask
       if (error.code === 4902) {
-        return await addAmoyNetwork();
+        return await addSepoliaNetworkInternal();
       }
       console.error("Error switching to Amoy network:", error);
       return false;
@@ -564,6 +584,31 @@ function App() {
             </svg>
             Connect Wallet
           </button>
+
+          <div className="mt-4 pt-4 border-t border-gray-700/50">
+            <p className="text-gray-400 text-sm mb-3">
+              Don't have Sepolia network in MetaMask?
+            </p>
+            <button
+              onClick={addSepoliaNetwork}
+              className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-3 rounded-lg font-medium hover:from-blue-400 hover:to-indigo-400 transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+              Add Sepolia Network to MetaMask
+            </button>
+          </div>
         </div>
       </div>
     );
