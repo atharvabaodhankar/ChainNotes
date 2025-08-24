@@ -53,6 +53,36 @@ function App() {
     init();
   }, [isConnected, userAddress]);
 
+  // Listen for network changes and log out user if they switch away from Sepolia
+  useEffect(() => {
+    const handleNetworkChange = (chainId) => {
+      const newChainId = parseInt(chainId, 16).toString();
+      
+      // If user is connected and switches away from Sepolia, log them out
+      if (isConnected && newChainId !== SEPOLIA_CHAIN_ID) {
+        setIsConnected(false);
+        setUserAddress("");
+        setNotes([]);
+        setNetworkError("You switched networks. Please connect to Ethereum Sepolia to continue using the app.");
+      }
+      // If they switch back to Sepolia, clear the error
+      else if (newChainId === SEPOLIA_CHAIN_ID) {
+        setNetworkError("");
+      }
+    };
+
+    if (window.ethereum) {
+      window.ethereum.on('chainChanged', handleNetworkChange);
+      
+      // Cleanup listener on unmount
+      return () => {
+        if (window.ethereum.removeListener) {
+          window.ethereum.removeListener('chainChanged', handleNetworkChange);
+        }
+      };
+    }
+  }, [isConnected]);
+
   const addAmoyNetwork = async () => {
     try {
       await window.ethereum.request({
@@ -147,15 +177,31 @@ function App() {
         const accounts = await provider.listAccounts();
 
         if (accounts.length > 0) {
-          setUserAddress(accounts[0].address);
-          setIsConnected(true);
-          console.log("✅ Using default MetaMask provider");
+          // Check network before connecting
+          const network = await provider.getNetwork();
+          
+          // Only connect if on Sepolia network
+          if (network.chainId.toString() === SEPOLIA_CHAIN_ID) {
+            setUserAddress(accounts[0].address);
+            setIsConnected(true);
+            setNetworkError("");
+            console.log("✅ Connected to Sepolia network");
+          } else {
+            // User has accounts but wrong network
+            setIsConnected(false);
+            setUserAddress("");
+            setNetworkError("Please switch to Ethereum Sepolia Testnet to use this app");
+            console.log("❌ Wrong network detected");
+          }
         } else {
           setIsConnected(false);
+          setUserAddress("");
         }
       }
     } catch (error) {
       console.error("Error checking connection:", error);
+      setIsConnected(false);
+      setUserAddress("");
     }
   };
   useEffect(() => {
