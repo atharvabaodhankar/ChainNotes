@@ -39,37 +39,23 @@ jobs:
         tar -czf web3-notes-${{ steps.version.outputs.version }}.tar.gz -C release-package .
         
     - name: Create Release
-      uses: actions/create-release@v1
-      id: create_release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.version.outputs.version }}
-        release_name: "Web3 Notes ${{ steps.version.outputs.version }}"
-        body: |
-          ## 🚀 New Release
-          
-          Frontend build ready for deployment!
-          
-          **What's included:**
-          - Production-ready React build
-          - Optimized assets and bundles
-          - Ready to deploy to any static hosting
-          
-          **Deploy to:**
-          - Vercel, Netlify, GitHub Pages
-          - Any static file hosting service
-          
-          Extract the archive and upload the contents to your hosting provider.
-        draft: false
-        prerelease: false
-        
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./web3-notes-${{ steps.version.outputs.version }}.tar.gz
-        asset_name: web3-notes-${{ steps.version.outputs.version }}.tar.gz
-        asset_content_type: application/gzip
+      run: |
+        gh release create ${{ steps.version.outputs.version }} \
+          --title "Web3 Notes ${{ steps.version.outputs.version }}" \
+          --notes "## 🚀 New Release
+
+        Frontend build ready for deployment!
+
+        **What's included:**
+        - Production-ready React build
+        - Optimized assets and bundles
+        - Ready to deploy to any static hosting
+
+        **Deploy to:**
+        - Vercel, Netlify, GitHub Pages
+        - Any static file hosting service
+
+        Extract the archive and upload the contents to your hosting provider." \
+          web3-notes-${{ steps.version.outputs.version }}.tar.gz
