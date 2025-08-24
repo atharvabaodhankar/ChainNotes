@@ -25,23 +25,23 @@ function App() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState(null);
 
-  // Polygon Amoy testnet configuration
-  const AMOY_CHAIN_ID = "80002";
-  const AMOY_NETWORK = {
-    chainId: "0x138C2", // 80002 in hex
-    chainName: "Polygon Amoy Testnet",
+  // Ethereum Sepolia testnet configuration
+  const SEPOLIA_CHAIN_ID = "11155111";
+  const SEPOLIA_NETWORK = {
+    chainId: "0xAA36A7", // 11155111 in hex
+    chainName: "Ethereum Sepolia",
     nativeCurrency: {
-      name: "MATIC",
-      symbol: "MATIC",
+      name: "ETH",
+      symbol: "ETH",
       decimals: 18,
     },
     rpcUrls: [
-      "https://rpc-amoy.polygon.technology/",
-      "https://polygon-amoy.blockpi.network/v1/rpc/public",
-      "https://polygon-amoy.public.blastapi.io",
-      "https://amoy.drpc.org",
+      "https://ethereum-sepolia-rpc.publicnode.com",
+      "https://rpc.sepolia.org",
+      "https://sepolia.gateway.tenderly.co",
+      "https://ethereum-sepolia.blockpi.network/v1/rpc/public",
     ],
-    blockExplorerUrls: ["https://www.oklink.com/amoy"],
+    blockExplorerUrls: ["https://sepolia.etherscan.io"],
   };
   useEffect(() => {
     const init = async () => {
@@ -57,7 +57,7 @@ function App() {
     try {
       await window.ethereum.request({
         method: "wallet_addEthereumChain",
-        params: [AMOY_NETWORK],
+        params: [SEPOLIA_NETWORK],
       });
       return true;
     } catch (error) {
@@ -70,7 +70,7 @@ function App() {
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: `0x${parseInt(AMOY_CHAIN_ID).toString(16)}` }],
+        params: [{ chainId: `0x${parseInt(SEPOLIA_CHAIN_ID).toString(16)}` }],
       });
       return true;
     } catch (error) {
@@ -97,9 +97,9 @@ function App() {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const network = await provider.getNetwork();
 
-      // Check if on Polygon Amoy testnet (80002)
-      if (network.chainId.toString() !== AMOY_CHAIN_ID) {
-        setNetworkError("Please switch to Polygon Amoy Testnet");
+      // Check if on Ethereum Sepolia testnet (11155111)
+      if (network.chainId.toString() !== SEPOLIA_CHAIN_ID) {
+        setNetworkError("Please switch to Ethereum Sepolia Testnet");
 
         // Prompt user to switch to Amoy network
         const switched = await switchToAmoyNetwork();
@@ -109,8 +109,8 @@ function App() {
 
         // Verify the switch was successful
         const updatedNetwork = await provider.getNetwork();
-        if (updatedNetwork.chainId.toString() !== AMOY_CHAIN_ID) {
-          setNetworkError("Failed to switch to Polygon Amoy Testnet");
+        if (updatedNetwork.chainId.toString() !== SEPOLIA_CHAIN_ID) {
+          setNetworkError("Failed to switch to Ethereum Sepolia Testnet");
           return;
         }
       }

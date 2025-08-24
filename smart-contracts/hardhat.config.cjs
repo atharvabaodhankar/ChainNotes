@@ -1,7 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
 require('dotenv').config();
 
-const AMOY_RPC = process.env.AMOY_RPC || "https://rpc-amoy.polygon.technology/";
+const SEPOLIA_RPC = process.env.SEPOLIA_RPC || "https://ethereum-sepolia-rpc.publicnode.com";
 const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || "";
 
 /** @type import('hardhat/config').HardhatUserConfig */
@@ -10,9 +10,9 @@ module.exports = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {},
-    amoy: {
-      url: AMOY_RPC,
-      chainId: 80002,
+    sepolia: {
+      url: SEPOLIA_RPC,
+      chainId: 11155111,
       accounts: DEPLOYER_PRIVATE_KEY ? [DEPLOYER_PRIVATE_KEY] : [],
     },
   },
