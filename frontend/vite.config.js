@@ -13,5 +13,8 @@ export default defineConfig(({ mode }) => {
       // Expose environment variables to your client-side code
       "process.env": JSON.stringify(env),
     },
+    server: {
+      host: true, // This allows access from your local network
+    },
   };
 });
