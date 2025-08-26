@@ -5,6 +5,7 @@ import { uploadNoteToIPFS, deleteNoteFromIPFS } from "./utils/pinata";
 import { decryptNoteData } from "./utils/encryption";
 import { shouldShowMobileMetaMaskPrompt, isMobileBrowser, openInMetaMaskApp } from "./utils/mobileDetection";
 import MobileMetaMaskPrompt from "./components/MobileMetaMaskPrompt";
+import ManualNetworkGuide from "./components/ManualNetworkGuide";
 import NotesABI from "./abis/NotesABI.json";
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
@@ -27,24 +28,25 @@ function App() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState(null);
   const [bypassMobileCheck, setBypassMobileCheck] = useState(false);
+  const [showManualGuide, setShowManualGuide] = useState(false);
 
   // Ethereum Sepolia testnet configuration
   const SEPOLIA_CHAIN_ID = "11155111";
   const SEPOLIA_NETWORK = {
     chainId: "0xAA36A7", // 11155111 in hex
-    chainName: "Ethereum Sepolia",
+    chainName: "Sepolia test network",
     nativeCurrency: {
-      name: "ETH",
+      name: "SepoliaETH",
       symbol: "ETH",
       decimals: 18,
     },
     rpcUrls: [
-      "https://ethereum-sepolia-rpc.publicnode.com",
+      "https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
       "https://rpc.sepolia.org",
+      "https://ethereum-sepolia-rpc.publicnode.com",
       "https://sepolia.gateway.tenderly.co",
-      "https://ethereum-sepolia.blockpi.network/v1/rpc/public",
     ],
-    blockExplorerUrls: ["https://sepolia.etherscan.io"],
+    blockExplorerUrls: ["https://sepolia.etherscan.io/"],
   };
   useEffect(() => {
     const init = async () => {
@@ -88,11 +90,24 @@ function App() {
 
   const addSepoliaNetworkInternal = async () => {
     try {
-      await window.ethereum.request({
-        method: "wallet_addEthereumChain",
-        params: [SEPOLIA_NETWORK],
-      });
-      return true;
+      // First try to switch to Sepolia if it already exists
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0xAA36A7" }],
+        });
+        return true;
+      } catch (switchError) {
+        // If switch fails, the network doesn't exist, so add it
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [SEPOLIA_NETWORK],
+          });
+          return true;
+        }
+        throw switchError;
+      }
     } catch (error) {
       console.error("Error adding Sepolia network:", error);
       return false;
@@ -102,20 +117,39 @@ function App() {
   // Function for the login page "Add Sepolia Network" button
   const addSepoliaNetwork = async () => {
     try {
-      await window.ethereum.request({
-        method: "wallet_addEthereumChain",
-        params: [SEPOLIA_NETWORK],
-      });
+      // First check if MetaMask is available
+      if (!window.ethereum) {
+        alert("MetaMask is not installed. Please install MetaMask first.");
+        return;
+      }
+
+      // Try to add/switch to Sepolia network
+      const success = await addSepoliaNetworkInternal();
       
-      // After adding, try to switch to it
-      await switchToSepoliaNetwork();
-      
-      // Show success message
-      setNetworkError("");
-      alert("Sepolia network added successfully! You can now connect your wallet.");
+      if (success) {
+        // Clear any existing network errors
+        setNetworkError("");
+        alert("Sepolia network added successfully! You can now connect your wallet.");
+      } else {
+        throw new Error("Failed to add network");
+      }
     } catch (error) {
       console.error("Error adding Sepolia network:", error);
-      alert("Failed to add Sepolia network. Please try again.");
+      
+      // Provide more specific error messages
+      let errorMessage = "Failed to add Sepolia network. ";
+      
+      if (error.code === 4001) {
+        errorMessage += "You rejected the request. Please try again and approve the network addition.";
+      } else if (error.code === -32002) {
+        errorMessage += "A request is already pending. Please check MetaMask and approve any pending requests.";
+      } else if (error.message && error.message.includes("User rejected")) {
+        errorMessage += "You rejected the request. Please try again and approve the network addition.";
+      } else {
+        errorMessage += "Please make sure MetaMask is unlocked and try again.";
+      }
+      
+      alert(errorMessage);
     }
   };
 
@@ -563,12 +597,20 @@ function App() {
             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
               <p className="text-red-300 text-sm">{networkError}</p>
               {networkError.includes("Ethereum Sepolia") && (
-                <button
-                  onClick={switchToSepoliaNetwork}
-                  className="mt-3 w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg font-medium text-sm hover:from-purple-400 hover:to-pink-400 transition-all duration-300"
-                >
-                  Switch to Ethereum Sepolia
-                </button>
+                <div className="mt-3 space-y-2">
+                  <button
+                    onClick={switchToSepoliaNetwork}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg font-medium text-sm hover:from-purple-400 hover:to-pink-400 transition-all duration-300"
+                  >
+                    Switch to Ethereum Sepolia
+                  </button>
+                  <button
+                    onClick={() => setShowManualGuide(true)}
+                    className="w-full bg-gray-600 hover:bg-gray-500 text-gray-200 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300"
+                  >
+                    Manual Setup Guide
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -597,25 +639,46 @@ function App() {
             <p className="text-gray-400 text-sm mb-3">
               Don't have Sepolia network in MetaMask?
             </p>
-            <button
-              onClick={addSepoliaNetwork}
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-3 rounded-lg font-medium hover:from-blue-400 hover:to-indigo-400 transition-all duration-300 flex items-center justify-center gap-2 text-sm"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="space-y-2">
+              <button
+                onClick={addSepoliaNetwork}
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-3 rounded-lg font-medium hover:from-blue-400 hover:to-indigo-400 transition-all duration-300 flex items-center justify-center gap-2 text-sm"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              Add Sepolia Network to MetaMask
-            </button>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                Add Sepolia Network to MetaMask
+              </button>
+              <button
+                onClick={() => setShowManualGuide(true)}
+                className="w-full bg-gray-600 hover:bg-gray-500 text-gray-200 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                Manual Setup Guide
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1345,6 +1408,11 @@ function App() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Manual Network Guide Modal */}
+        {showManualGuide && (
+          <ManualNetworkGuide onClose={() => setShowManualGuide(false)} />
         )}
       </div>
     </div>

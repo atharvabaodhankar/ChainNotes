@@ -685,11 +685,16 @@ Web3 Notes automatically detects mobile browsers and provides optimized experien
 // Mobile detection utility
 export const isMobileBrowser = () => {
   const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
-  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const mobileRegex =
+    /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+  const isTouchDevice =
+    "ontouchstart" in window || navigator.maxTouchPoints > 0;
   const isSmallScreen = window.innerWidth <= 768;
-  
-  return mobileRegex.test(userAgent.toLowerCase()) || (isTouchDevice && isSmallScreen);
+
+  return (
+    mobileRegex.test(userAgent.toLowerCase()) ||
+    (isTouchDevice && isSmallScreen)
+  );
 };
 
 // MetaMask app deep linking
