@@ -3,6 +3,8 @@ import "./App.css";
 import { ethers } from "ethers";
 import { uploadNoteToIPFS, deleteNoteFromIPFS } from "./utils/pinata";
 import { decryptNoteData } from "./utils/encryption";
+import { shouldShowMobileMetaMaskPrompt, isMobileBrowser, openInMetaMaskApp } from "./utils/mobileDetection";
+import MobileMetaMaskPrompt from "./components/MobileMetaMaskPrompt";
 import NotesABI from "./abis/NotesABI.json";
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
@@ -24,6 +26,7 @@ function App() {
   const [deletingNoteId, setDeletingNoteId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState(null);
+  const [bypassMobileCheck, setBypassMobileCheck] = useState(false);
 
   // Ethereum Sepolia testnet configuration
   const SEPOLIA_CHAIN_ID = "11155111";
@@ -489,6 +492,11 @@ function App() {
     };
   }, []); // Remove the dependencies that cause infinite loop
 
+  // Check for mobile browsers without MetaMask
+  if (shouldShowMobileMetaMaskPrompt() && !bypassMobileCheck) {
+    return <MobileMetaMaskPrompt onContinueAnyway={() => setBypassMobileCheck(true)} />;
+  }
+
   if (!window.ethereum) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
@@ -627,6 +635,31 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="max-w-6xl mx-auto p-6">
+        {/* Mobile MetaMask Banner */}
+        {isMobileBrowser() && bypassMobileCheck && (
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-orange-300 text-sm font-medium">Mobile Browser Detected</p>
+                  <p className="text-orange-200 text-xs">For better experience, use MetaMask app</p>
+                </div>
+              </div>
+              <button
+                onClick={openInMetaMaskApp}
+                className="bg-orange-500 hover:bg-orange-400 text-white px-3 py-1 rounded-lg text-xs font-medium transition-colors duration-200"
+              >
+                Open in MetaMask
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-4 sm:p-6 lg:p-8 mb-6 shadow-2xl shadow-purple-500/10">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

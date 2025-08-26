@@ -658,6 +658,63 @@ Deletion: $1.50 (gas) + $0.00 (IPFS) = $1.50
 
 ---
 
+## 📱 Mobile Support
+
+### Mobile Browser Detection
+
+Web3 Notes automatically detects mobile browsers and provides optimized experiences for mobile users.
+
+#### Mobile Detection Features
+
+- **Automatic Detection**: Identifies mobile devices using user agent and touch capabilities
+- **MetaMask App Integration**: Provides direct links to open the app in MetaMask mobile browser
+- **Download Prompts**: Platform-specific download links (iOS App Store, Google Play Store)
+- **Bypass Option**: Advanced users can continue with regular mobile browsers
+
+#### Mobile User Flow
+
+1. **Mobile Detection**: App detects mobile browser without MetaMask
+2. **Prompt Display**: Shows mobile-optimized MetaMask prompt
+3. **Two Options**:
+   - **Recommended**: Download MetaMask app or open in MetaMask browser
+   - **Advanced**: Continue with regular browser (limited functionality)
+
+#### Implementation Details
+
+```javascript
+// Mobile detection utility
+export const isMobileBrowser = () => {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isSmallScreen = window.innerWidth <= 768;
+  
+  return mobileRegex.test(userAgent.toLowerCase()) || (isTouchDevice && isSmallScreen);
+};
+
+// MetaMask app deep linking
+export const openInMetaMaskApp = () => {
+  const metamaskUrl = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
+  window.location.href = metamaskUrl;
+};
+```
+
+#### Mobile Experience Features
+
+- **Responsive Design**: Optimized layouts for mobile screens
+- **Touch-Friendly**: Large buttons and touch targets
+- **Mobile Banner**: Persistent reminder for mobile users who bypass the prompt
+- **Platform Detection**: iOS/Android specific instructions and download links
+
+#### Why Mobile Optimization Matters
+
+- **Web3 Adoption**: Many users access dApps primarily on mobile
+- **MetaMask Mobile**: Better security and functionality in dedicated app
+- **User Experience**: Reduces friction for mobile Web3 interactions
+- **Accessibility**: Ensures the app works across all devices
+
+---
+
 ## 🔧 Technical Stack
 
 ### Blockchain Layer
