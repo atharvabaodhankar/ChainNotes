@@ -33,6 +33,14 @@
 	position: relative;
 	animation: modalPop 0.35s cubic-bezier(.4,0,.2,1);
 }
+
+@media (max-width: 640px) {
+	.centered-modal-content {
+		padding: 2rem 1.5rem 1.5rem 1.5rem;
+		width: 94vw;
+		max-height: 85vh;
+	}
+}
 @keyframes modalPop {
 	0% {
 		transform: scale(0.7) translateY(40px);
@@ -62,7 +70,15 @@
 	cursor: pointer;
 	transition: color 0.2s;
 	z-index: 10;
+	padding: 0.5rem;
+	min-width: 44px;
+	min-height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 0.5rem;
 }
 .centered-close-btn:hover {
 	color: #ff6b81;
+	background: rgba(255, 107, 129, 0.1);
 }

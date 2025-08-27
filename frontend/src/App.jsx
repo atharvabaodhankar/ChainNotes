@@ -938,7 +938,7 @@ function App() {
                               e.stopPropagation();
                               handleDeleteClick(note);
                             }}
-                            className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all duration-300 p-1 rounded-lg hover:bg-red-500/10"
+                            className="text-gray-500 hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 p-2 sm:p-1 rounded-lg hover:bg-red-500/10 touch-manipulation"
                             title="Delete note"
                           >
                             <svg
@@ -986,7 +986,7 @@ function App() {
                           href={`https://gateway.pinata.cloud/ipfs/${note.ipfsHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-emerald-400 hover:text-emerald-300 text-xs inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                          className="text-emerald-400 hover:text-emerald-300 text-xs inline-flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300"
                         >
                           <svg
                             className="w-3 h-3"
