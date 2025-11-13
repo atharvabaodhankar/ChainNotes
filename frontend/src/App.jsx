@@ -4,12 +4,20 @@ import { ethers } from "ethers";
 import { uploadNoteToIPFS, deleteNoteFromIPFS } from "./utils/pinata";
 import { decryptNoteData } from "./utils/encryption";
 import { shouldShowMobileMetaMaskPrompt, isMobileBrowser, openInMetaMaskApp } from "./utils/mobileDetection";
+import { filterNotes, sortNotes, getCategories } from "./utils/noteFilters";
 import MobileMetaMaskPrompt from "./components/MobileMetaMaskPrompt";
 import ManualNetworkGuide from "./components/ManualNetworkGuide";
 import FaucetButton from "./components/FaucetButton";
-import NotesABI from "./abis/NotesABI.json";
+import SearchFilter from "./components/SearchFilter";
+import EnhancedNoteCard from "./components/EnhancedNoteCard";
+import StatsCard from "./components/StatsCard";
+import TemplateSelector from "./components/TemplateSelector";
+import ExportImport from "./components/ExportImport";
+import ThemeToggle from "./components/ThemeToggle";
+import NotesArtifact from "./abis/NotesABI.json";
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
+const NotesABI = NotesArtifact.abi;
 
 function App() {
   const [notes, setNotes] = useState([]);
@@ -17,6 +25,7 @@ function App() {
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [noteTitle, setNoteTitle] = useState("");
   const [noteContent, setNoteContent] = useState("");
+  const [noteCategory, setNoteCategory] = useState("");
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [userAddress, setUserAddress] = useState("");
@@ -30,6 +39,14 @@ function App() {
   const [noteToDelete, setNoteToDelete] = useState(null);
   const [bypassMobileCheck, setBypassMobileCheck] = useState(false);
   const [showManualGuide, setShowManualGuide] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [showExportImport, setShowExportImport] = useState(false);
+  const [filters, setFilters] = useState({
+    searchQuery: '',
+    category: 'all',
+    showFavoritesOnly: false,
+    sortBy: 'newest'
+  });
 
   // Ethereum Sepolia testnet configuration
   const SEPOLIA_CHAIN_ID = "11155111";
@@ -393,7 +410,8 @@ function App() {
       const ipfsHash = await uploadNoteToIPFS(noteData, userAddress);
       const contract = await getContract();
       try {
-        const tx = await contract.addNote(ipfsHash, { gasLimit: 500000 });
+        // V2 contract requires category as second parameter
+        const tx = await contract.addNote(ipfsHash, noteCategory || "", { gasLimit: 500000 });
         await tx.wait();
       } catch (err) {
         console.error(
@@ -404,6 +422,7 @@ function App() {
 
       setNoteTitle("");
       setNoteContent("");
+      setNoteCategory("");
       setShowAddModal(false);
       loadNotes();
     } catch (error) {
@@ -460,6 +479,43 @@ function App() {
     } finally {
       setDeletingNoteId(null);
     }
+  };
+
+  const toggleFavorite = async (noteId) => {
+    if (!isConnected) return;
+    
+    try {
+      const contract = await getContract();
+      const tx = await contract.toggleFavorite(noteId);
+      await tx.wait();
+      loadNotes(); // Refresh notes to show updated favorite status
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      alert("Failed to update favorite status. Please try again.");
+    }
+  };
+
+  const applyTemplate = (template) => {
+    setNoteTitle(template.title);
+    setNoteContent(template.content);
+    setNoteCategory(template.category);
+    setShowTemplateSelector(false);
+    setShowAddModal(true);
+  };
+
+  const handleImport = async (importedNotes) => {
+    for (const note of importedNotes) {
+      try {
+        const ipfsHash = await uploadNoteToIPFS(note, userAddress);
+        const contract = await getContract();
+        const tx = await contract.addNote(ipfsHash, note.category || "");
+        await tx.wait();
+      } catch (error) {
+        console.error("Error importing note:", error);
+      }
+    }
+    loadNotes();
+    setShowExportImport(false);
   };
 
   const handleDeleteClick = (note) => {
@@ -763,6 +819,29 @@ function App() {
                 </button>
               </div>
 
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <button
+                  onClick={() => setShowTemplateSelector(true)}
+                  className="bg-gray-700/50 hover:bg-gray-700 text-gray-300 p-3 rounded-xl border border-purple-500/20 transition-all duration-300"
+                  title="Note Templates"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setShowExportImport(true)}
+                  className="bg-gray-700/50 hover:bg-gray-700 text-gray-300 p-3 rounded-xl border border-purple-500/20 transition-all duration-300"
+                  title="Export/Import"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  </svg>
+                </button>
+              </div>
+
               {/* Wallet Info */}
               <div className="text-center sm:text-right">
                 <div className="flex items-center justify-center sm:justify-end gap-2">
@@ -787,8 +866,18 @@ function App() {
             {/* Faucet Button */}
             <FaucetButton userAddress={userAddress} isConnected={isConnected} />
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+            {/* Enhanced Stats Dashboard */}
+            <StatsCard notes={notes} />
+
+            {/* Search & Filter */}
+            <SearchFilter
+              onFilterChange={setFilters}
+              categories={getCategories(notes)}
+              noteCount={filterNotes(notes, filters).length}
+            />
+
+            {/* Old Stats Cards - Keeping for now */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6" style={{display: 'none'}}>
               <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 shadow-2xl shadow-purple-500/10">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-purple-500 rounded-xl flex items-center justify-center">
@@ -921,6 +1010,16 @@ function App() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  {sortNotes(filterNotes(notes, filters), filters.sortBy).slice(0, 6).map((note, i) => (
+                    <EnhancedNoteCard
+                      key={note.id}
+                      note={note}
+                      onDelete={handleDeleteClick}
+                      onToggleFavorite={toggleFavorite}
+                      onClick={openFullscreen}
+                    />
+                  ))}
+                  {/* Old note card - keeping as backup
                   {notes.slice(0, 6).map((note, i) => (
                     <div
                       key={i}
@@ -1009,7 +1108,7 @@ function App() {
                         </a>
                       </div>
                     </div>
-                  ))}
+                  ))} */}
                 </div>
               )}
             </div>
@@ -1237,6 +1336,22 @@ function App() {
                     rows={6}
                   />
                 </div>
+
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Category (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full bg-gray-700/50 border border-purple-500/30 rounded-xl p-4 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500/50 transition-all duration-300"
+                    placeholder="e.g., Work, Personal, Ideas..."
+                    value={noteCategory}
+                    onChange={(e) => setNoteCategory(e.target.value)}
+                  />
+                  <p className="text-gray-500 text-xs mt-2">
+                    💡 Categories help you organize and filter your notes
+                  </p>
+                </div>
               </div>
 
               <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
@@ -1417,6 +1532,23 @@ function App() {
         {/* Manual Network Guide Modal */}
         {showManualGuide && (
           <ManualNetworkGuide onClose={() => setShowManualGuide(false)} />
+        )}
+
+        {/* Template Selector Modal */}
+        {showTemplateSelector && (
+          <TemplateSelector
+            onSelectTemplate={applyTemplate}
+            onClose={() => setShowTemplateSelector(false)}
+          />
+        )}
+
+        {/* Export/Import Modal */}
+        {showExportImport && (
+          <ExportImport
+            notes={notes}
+            onImport={handleImport}
+            onClose={() => setShowExportImport(false)}
+          />
         )}
       </div>
     </div>
