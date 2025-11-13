@@ -86,7 +86,11 @@ const ExportImport = ({ notes, onImport, onClose }) => {
                 onClick={() => handleExport('json')}
                 className="bg-gray-700/30 hover:bg-gray-700/50 border border-purple-500/20 hover:border-emerald-500/40 rounded-xl p-6 transition-all duration-300 group"
               >
-                <div className="text-3xl mb-2">📄</div>
+                <div className="inline-flex p-3 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white mb-2">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
                 <h3 className="text-gray-100 font-semibold mb-1 group-hover:text-emerald-400 transition-colors">
                   JSON
                 </h3>
@@ -99,7 +103,11 @@ const ExportImport = ({ notes, onImport, onClose }) => {
                 onClick={() => handleExport('markdown')}
                 className="bg-gray-700/30 hover:bg-gray-700/50 border border-purple-500/20 hover:border-emerald-500/40 rounded-xl p-6 transition-all duration-300 group"
               >
-                <div className="text-3xl mb-2">📝</div>
+                <div className="inline-flex p-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 text-white mb-2">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
                 <h3 className="text-gray-100 font-semibold mb-1 group-hover:text-emerald-400 transition-colors">
                   Markdown
                 </h3>
@@ -112,7 +120,11 @@ const ExportImport = ({ notes, onImport, onClose }) => {
                 onClick={() => handleExport('txt')}
                 className="bg-gray-700/30 hover:bg-gray-700/50 border border-purple-500/20 hover:border-emerald-500/40 rounded-xl p-6 transition-all duration-300 group"
               >
-                <div className="text-3xl mb-2">📋</div>
+                <div className="inline-flex p-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white mb-2">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
                 <h3 className="text-gray-100 font-semibold mb-1 group-hover:text-emerald-400 transition-colors">
                   Plain Text
                 </h3>
@@ -123,9 +135,14 @@ const ExportImport = ({ notes, onImport, onClose }) => {
             </div>
 
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mt-6">
-              <p className="text-blue-300 text-sm">
-                💡 <strong>Tip:</strong> JSON format preserves all metadata and can be re-imported later.
-              </p>
+              <div className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-blue-300 text-sm">
+                  <strong>Tip:</strong> JSON format preserves all metadata and can be re-imported later.
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -171,9 +188,14 @@ const ExportImport = ({ notes, onImport, onClose }) => {
             )}
 
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mt-6">
-              <p className="text-yellow-300 text-sm">
-                ⚠️ <strong>Warning:</strong> Imported notes will be added to your existing notes. This action cannot be undone.
-              </p>
+              <div className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-1.964-1.333-2.732 0L3.732 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p className="text-yellow-300 text-sm">
+                  <strong>Warning:</strong> Imported notes will be added to your existing notes. This action cannot be undone.
+                </p>
+              </div>
             </div>
           </div>
         )}

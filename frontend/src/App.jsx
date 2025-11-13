@@ -13,7 +13,6 @@ import EnhancedNoteCard from "./components/EnhancedNoteCard";
 import StatsCard from "./components/StatsCard";
 import TemplateSelector from "./components/TemplateSelector";
 import ExportImport from "./components/ExportImport";
-import ThemeToggle from "./components/ThemeToggle";
 import NotesArtifact from "./abis/NotesABI.json";
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
@@ -821,7 +820,6 @@ function App() {
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2">
-                <ThemeToggle />
                 <button
                   onClick={() => setShowTemplateSelector(true)}
                   className="bg-gray-700/50 hover:bg-gray-700 text-gray-300 p-3 rounded-xl border border-purple-500/20 transition-all duration-300"
@@ -1348,8 +1346,11 @@ function App() {
                     value={noteCategory}
                     onChange={(e) => setNoteCategory(e.target.value)}
                   />
-                  <p className="text-gray-500 text-xs mt-2">
-                    💡 Categories help you organize and filter your notes
+                  <p className="text-gray-500 text-xs mt-2 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Categories help you organize and filter your notes
                   </p>
                 </div>
               </div>
