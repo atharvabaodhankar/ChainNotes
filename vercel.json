@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "api/faucet.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "env": {
+    "SEPOLIA_RPC_URL": "@sepolia-rpc-url",
+    "FAUCET_PRIVATE_KEY": "@faucet-private-key",
+    "FAUCET_AMOUNT": "0.005"
+  }
+}

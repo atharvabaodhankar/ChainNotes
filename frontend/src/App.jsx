@@ -6,6 +6,7 @@ import { decryptNoteData } from "./utils/encryption";
 import { shouldShowMobileMetaMaskPrompt, isMobileBrowser, openInMetaMaskApp } from "./utils/mobileDetection";
 import MobileMetaMaskPrompt from "./components/MobileMetaMaskPrompt";
 import ManualNetworkGuide from "./components/ManualNetworkGuide";
+import FaucetButton from "./components/FaucetButton";
 import NotesABI from "./abis/NotesABI.json";
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
@@ -783,6 +784,9 @@ function App() {
         {/* Dashboard View */}
         {currentView === "dashboard" && (
           <>
+            {/* Faucet Button */}
+            <FaucetButton userAddress={userAddress} isConnected={isConnected} />
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
               <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 shadow-2xl shadow-purple-500/10">

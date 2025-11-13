@@ -720,6 +720,145 @@ export const openInMetaMaskApp = () => {
 
 ---
 
+## 🚰 Automated Faucet System
+
+### Overview
+
+Web3 Notes includes an automated faucet system that sends small amounts of Sepolia ETH to first-time users, eliminating the friction of manually requesting test tokens.
+
+### How It Works
+
+1. **User connects wallet** with low/zero Sepolia ETH balance
+2. **Faucet button appears** automatically in the dashboard
+3. **User clicks "Get Free ETH"** to request tokens
+4. **Backend verifies signature** to ensure wallet ownership
+5. **Faucet sends 0.005 ETH** directly to user's wallet
+6. **Transaction completes** and user can start using the app
+
+### Technical Implementation
+
+#### Backend API (`/api/faucet`)
+```javascript
+// Signature verification for security
+const recoveredAddress = ethers.verifyMessage(message, signature);
+
+// Rate limiting (24 hours per address)
+const canRequest = checkRateLimit(address);
+
+// Balance checks (only send to low-balance wallets)
+const needsETH = balance < 0.001;
+
+// Send transaction
+const tx = await faucetWallet.sendTransaction({
+  to: address,
+  value: ethers.parseEther('0.005')
+});
+```
+
+#### Frontend Integration
+```jsx
+// Automatic eligibility checking
+const needsETH = await checkFaucetEligibility(address, provider);
+
+// One-click request
+<FaucetButton userAddress={userAddress} isConnected={isConnected} />
+
+// Success handling
+const result = await requestSepoliaETH(address, signer);
+```
+
+### Security Features
+
+- **Signature Verification**: Users must sign a message proving wallet ownership
+- **Rate Limiting**: One request per wallet per 24 hours
+- **Balance Checks**: Only sends to wallets with < 0.001 ETH
+- **Amount Limits**: Configurable send amount (default: 0.005 ETH)
+- **Abuse Prevention**: Multiple layers of protection against spam
+
+### Deployment Options
+
+#### Vercel (Recommended)
+```bash
+# Quick deployment
+npm install -g vercel
+vercel env add FAUCET_PRIVATE_KEY
+vercel env add SEPOLIA_RPC_URL
+vercel --prod
+```
+
+#### Alternative Platforms
+- **Netlify Functions**: Serverless deployment
+- **Railway**: Container-based hosting  
+- **Render**: Web service deployment
+- **AWS Lambda**: Enterprise-grade serverless
+
+### Configuration
+
+#### Environment Variables
+```bash
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_KEY
+FAUCET_PRIVATE_KEY=0x1234567890abcdef...
+FAUCET_AMOUNT=0.005  # ETH amount per request
+```
+
+#### Faucet Wallet Setup
+1. Create dedicated wallet for faucet
+2. Fund with 1-5 Sepolia ETH from public faucets
+3. Never use personal wallet for faucet operations
+4. Monitor balance regularly
+
+### Monitoring & Maintenance
+
+#### Faucet Status API (`/api/faucet-status`)
+```json
+{
+  "faucet": {
+    "balance": "2.45",
+    "isLowBalance": false,
+    "address": "0x..."
+  },
+  "capacity": {
+    "requestsRemaining": 490,
+    "estimatedDaysRemaining": 4
+  },
+  "status": "healthy"
+}
+```
+
+#### Admin Dashboard
+- Real-time balance monitoring
+- Request capacity tracking
+- Network status information
+- Low balance alerts
+
+### Cost Analysis
+
+#### Per User Costs
+- **ETH sent**: 0.005 ETH (~$0.01)
+- **Gas costs**: ~0.00002 ETH (~$0.00004)
+- **Total per user**: ~$0.01004
+
+#### Monthly Costs (1000 users)
+- **ETH distributed**: 5 ETH
+- **Gas fees**: 0.02 ETH
+- **Total**: ~5.02 ETH (~$10.04)
+
+### Benefits
+
+#### User Experience
+- **Zero friction onboarding**: No manual faucet requests
+- **Instant access**: ETH arrives in seconds
+- **Mobile optimized**: Works seamlessly on all devices
+- **Smart detection**: Only shows when needed
+
+#### Developer Benefits
+- **Reduced support**: Fewer "how to get test ETH" questions
+- **Higher conversion**: Users can start immediately
+- **Better analytics**: Track actual usage vs abandonment
+- **Professional feel**: Polished onboarding experience
+
+---
+
 ## 🔧 Technical Stack
 
 ### Blockchain Layer
