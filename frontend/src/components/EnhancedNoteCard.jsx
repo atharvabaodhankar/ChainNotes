@@ -39,14 +39,14 @@ const EnhancedNoteCard = ({ note, onDelete, onToggleFavorite, onClick }) => {
         </div>
       </div>
 
-      {/* Hidden action buttons */}
-      <div className="hidden group-hover:flex items-center gap-2 mt-3">
+      {/* Animated action buttons */}
+      <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out">
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite(note.id);
           }}
-          className="text-gray-500 hover:text-yellow-500 transition-colors p-1"
+          className="text-gray-400 hover:text-yellow-500 hover:scale-110 transition-all duration-200 p-1.5 rounded-md hover:bg-yellow-50"
           title={note.isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
           <svg className="w-4 h-4" fill={note.isFavorite ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +58,7 @@ const EnhancedNoteCard = ({ note, onDelete, onToggleFavorite, onClick }) => {
             e.stopPropagation();
             onDelete(note);
           }}
-          className="text-gray-500 hover:text-red-500 transition-colors p-1"
+          className="text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200 p-1.5 rounded-md hover:bg-red-50"
           title="Delete note"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +70,7 @@ const EnhancedNoteCard = ({ note, onDelete, onToggleFavorite, onClick }) => {
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="text-gray-500 hover:text-blue-500 transition-colors p-1"
+          className="text-gray-400 hover:text-blue-500 hover:scale-110 transition-all duration-200 p-1.5 rounded-md hover:bg-blue-50"
           title="View on IPFS"
         >
           <svg
