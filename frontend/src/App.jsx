@@ -5,6 +5,7 @@ import { uploadNoteToIPFS, deleteNoteFromIPFS } from "./utils/pinata";
 import { decryptNoteData } from "./utils/encryption";
 import { shouldShowMobileMetaMaskPrompt, isMobileBrowser, openInMetaMaskApp } from "./utils/mobileDetection";
 import { filterNotes, sortNotes, getCategories } from "./utils/noteFilters";
+import { requestAutoFaucet, showFaucetNotification } from "./utils/autoFaucet";
 import MobileMetaMaskPrompt from "./components/MobileMetaMaskPrompt";
 import ManualNetworkGuide from "./components/ManualNetworkGuide";
 import FaucetButton from "./components/FaucetButton";
@@ -49,6 +50,8 @@ function App() {
     sortBy: 'newest'
   });
   const [manuallyDisconnected, setManuallyDisconnected] = useState(false);
+  const [faucetNotification, setFaucetNotification] = useState(null);
+  const [isRequestingFaucet, setIsRequestingFaucet] = useState(false);
   const deployProgress = useDeployProgress();
 
   // Ethereum Sepolia testnet configuration
@@ -191,6 +194,25 @@ function App() {
     }
   };
 
+  const tryAutoFaucet = async (address, provider) => {
+    try {
+      setIsRequestingFaucet(true);
+      const signer = await provider.getSigner();
+      const result = await requestAutoFaucet(address, signer);
+      
+      const notification = showFaucetNotification(result);
+      if (notification) {
+        setFaucetNotification(notification);
+        // Auto-hide notification after 10 seconds
+        setTimeout(() => setFaucetNotification(null), 10000);
+      }
+    } catch (error) {
+      console.error('Auto-faucet error:', error);
+    } finally {
+      setIsRequestingFaucet(false);
+    }
+  };
+
   const connectWallet = async () => {
     try {
       if (!window.ethereum) {
@@ -230,6 +252,10 @@ function App() {
       setUserAddress(accounts[0]);
       setNetworkError("");
       setShowManualGuide(false); // Close manual guide on successful connection
+      
+      // Auto-faucet for new users
+      tryAutoFaucet(accounts[0], provider);
+      
       loadNotes();
     } catch (error) {
       console.error("Error connecting wallet:", error);
@@ -759,6 +785,38 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6 md:p-8">
+        {/* Faucet Notification */}
+        {faucetNotification && (
+          <div className={`fixed top-6 right-6 z-50 max-w-md animate-slide-in-right ${
+            faucetNotification.type === 'success' ? 'bg-green-500' : 'bg-blue-500'
+          } text-white rounded-xl shadow-2xl p-6`}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="font-bold text-lg mb-2">{faucetNotification.title}</h3>
+                <p className="text-sm opacity-90 mb-3">{faucetNotification.message}</p>
+                {faucetNotification.explorerUrl && (
+                  <a
+                    href={faucetNotification.explorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm underline hover:opacity-80 transition-opacity"
+                  >
+                    View on Etherscan →
+                  </a>
+                )}
+              </div>
+              <button
+                onClick={() => setFaucetNotification(null)}
+                className="text-white hover:opacity-80 transition-opacity"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Mobile MetaMask Banner */}
         {isMobileBrowser() && bypassMobileCheck && (
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6 backdrop-blur-sm">

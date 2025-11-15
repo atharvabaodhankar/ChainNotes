@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || 'https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161';
-const FAUCET_PRIVATE_KEY = process.env.FAUCET_PRIVATE_KEY;
+const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
+const FAUCET_PRIVATE_KEY = process.env.PRIVATE_KEY;
 const FAUCET_AMOUNT = process.env.FAUCET_AMOUNT || '0.005';
 
 export default async function handler(req, res) {

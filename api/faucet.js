@@ -5,8 +5,8 @@ import { ethers } from 'ethers';
 // FAUCET_PRIVATE_KEY - Private key of the faucet wallet
 // FAUCET_AMOUNT - Amount to send (in ETH, e.g., "0.01")
 
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || 'https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161';
-const FAUCET_PRIVATE_KEY = process.env.FAUCET_PRIVATE_KEY;
+const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
+const FAUCET_PRIVATE_KEY = process.env.PRIVATE_KEY;
 const FAUCET_AMOUNT = process.env.FAUCET_AMOUNT || '0.005'; // 0.005 ETH default
 const RATE_LIMIT_HOURS = 24; // 24 hours between requests per address
 
