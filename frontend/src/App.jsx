@@ -229,6 +229,7 @@ function App() {
       setIsConnected(true);
       setUserAddress(accounts[0]);
       setNetworkError("");
+      setShowManualGuide(false); // Close manual guide on successful connection
       loadNotes();
     } catch (error) {
       console.error("Error connecting wallet:", error);
@@ -736,6 +737,11 @@ function App() {
             </div>
           </div>
         </div>
+
+        {/* Manual Network Guide Modal - Login Screen */}
+        {showManualGuide && (
+          <ManualNetworkGuide onClose={() => setShowManualGuide(false)} />
+        )}
       </div>
     );
   }
