@@ -71,17 +71,17 @@ const TemplateSelector = ({ onSelectTemplate, onClose }) => {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-6 max-w-3xl w-full shadow-2xl shadow-blue-500/10 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto animate-slideUp">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-100 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold text-gray-900">
             Choose a Template
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 transition-colors"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-all"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -95,15 +95,15 @@ const TemplateSelector = ({ onSelectTemplate, onClose }) => {
                 onSelectTemplate(NOTE_TEMPLATES[template.id]);
                 onClose();
               }}
-              className="bg-gray-700/30 hover:bg-gray-700/50 border border-blue-500/20 hover:border-blue-500/40 rounded-xl p-6 transition-all duration-300 text-left group"
+              className="bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-purple-300 rounded-xl p-6 transition-all duration-300 text-left group"
             >
               <div className={`inline-flex p-3 rounded-lg bg-gradient-to-r ${template.color} text-white mb-3`}>
                 {template.icon}
               </div>
-              <h3 className="text-gray-100 font-semibold mb-2 group-hover:text-blue-400 transition-colors">
+              <h3 className="text-gray-900 font-semibold mb-2 group-hover:text-purple-600 transition-colors">
                 {template.name}
               </h3>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-600 text-sm">
                 {template.description}
               </p>
             </button>

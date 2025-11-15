@@ -34,40 +34,40 @@ const ExportImport = ({ notes, onImport, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-6 max-w-2xl w-full shadow-2xl shadow-blue-500/10">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slideUp">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-100 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold text-gray-900">
             Export / Import Notes
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 transition-colors"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-all"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg">
           <button
             onClick={() => setActiveTab('export')}
-            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+            className={`flex-1 px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
               activeTab === 'export'
-                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
-                : 'bg-gray-700/50 text-gray-400 hover:text-gray-200'
+                ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             Export
           </button>
           <button
             onClick={() => setActiveTab('import')}
-            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+            className={`flex-1 px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
               activeTab === 'import'
-                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
-                : 'bg-gray-700/50 text-gray-400 hover:text-gray-200'
+                ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             Import
@@ -77,41 +77,41 @@ const ExportImport = ({ notes, onImport, onClose }) => {
         {/* Export Tab */}
         {activeTab === 'export' && (
           <div className="space-y-4">
-            <p className="text-gray-300 mb-4">
-              Export your notes in different formats. You have <span className="font-bold text-blue-400">{notes.length}</span> notes to export.
+            <p className="text-gray-600 mb-4">
+              Export your notes in different formats. You have <span className="font-bold text-purple-600">{notes.length}</span> notes to export.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <button
                 onClick={() => handleExport('json')}
-                className="bg-gray-700/30 hover:bg-gray-700/50 border border-purple-500/20 hover:border-emerald-500/40 rounded-xl p-6 transition-all duration-300 group"
+                className="bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-purple-300 rounded-xl p-6 transition-all duration-300 group"
               >
                 <div className="inline-flex p-3 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white mb-2">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-gray-100 font-semibold mb-1 group-hover:text-emerald-400 transition-colors">
+                <h3 className="text-gray-900 font-semibold mb-1 group-hover:text-purple-600 transition-colors">
                   JSON
                 </h3>
-                <p className="text-gray-400 text-sm">
+                <p className="text-gray-600 text-sm">
                   Full data export
                 </p>
               </button>
 
               <button
                 onClick={() => handleExport('markdown')}
-                className="bg-gray-700/30 hover:bg-gray-700/50 border border-purple-500/20 hover:border-emerald-500/40 rounded-xl p-6 transition-all duration-300 group"
+                className="bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-purple-300 rounded-xl p-6 transition-all duration-300 group"
               >
                 <div className="inline-flex p-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 text-white mb-2">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </div>
-                <h3 className="text-gray-100 font-semibold mb-1 group-hover:text-emerald-400 transition-colors">
+                <h3 className="text-gray-900 font-semibold mb-1 group-hover:text-purple-600 transition-colors">
                   Markdown
                 </h3>
-                <p className="text-gray-400 text-sm">
+                <p className="text-gray-600 text-sm">
                   Formatted text
                 </p>
               </button>
@@ -134,12 +134,12 @@ const ExportImport = ({ notes, onImport, onClose }) => {
               </button>
             </div>
 
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mt-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
               <div className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-blue-300 text-sm">
+                <p className="text-blue-800 text-sm">
                   <strong>Tip:</strong> JSON format preserves all metadata and can be re-imported later.
                 </p>
               </div>
@@ -150,11 +150,11 @@ const ExportImport = ({ notes, onImport, onClose }) => {
         {/* Import Tab */}
         {activeTab === 'import' && (
           <div className="space-y-4">
-            <p className="text-gray-300 mb-4">
+            <p className="text-gray-600 mb-4">
               Import notes from a previously exported JSON file.
             </p>
 
-            <div className="border-2 border-dashed border-purple-500/30 rounded-xl p-8 text-center">
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50">
               <input
                 type="file"
                 accept=".json"
@@ -169,7 +169,7 @@ const ExportImport = ({ notes, onImport, onClose }) => {
                 <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                <span className="text-gray-300 font-medium mb-2">
+                <span className="text-gray-700 font-medium mb-2">
                   {importFile ? importFile.name : 'Click to select file'}
                 </span>
                 <span className="text-gray-500 text-sm">
