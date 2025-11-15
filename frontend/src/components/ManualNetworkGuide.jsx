@@ -20,9 +20,9 @@ const ManualNetworkGuide = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800 rounded-2xl border border-purple-500/20 p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-gray-800 rounded-2xl border border-blue-500/20 p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-100">Manual Network Setup</h2>
+          <h2 className="text-xl font-bold text-gray-100 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">Manual Network Setup</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-200 transition-colors"
@@ -55,7 +55,7 @@ const ManualNetworkGuide = ({ onClose }) => {
                   <label className="text-gray-400 text-xs font-medium">{field}:</label>
                   <button
                     onClick={() => copyToClipboard(value, field)}
-                    className="text-purple-400 hover:text-purple-300 text-xs transition-colors"
+                    className="text-blue-400 hover:text-blue-300 text-xs transition-colors"
                   >
                     {copied === field ? 'Copied!' : 'Copy'}
                   </button>
@@ -71,7 +71,7 @@ const ManualNetworkGuide = ({ onClose }) => {
         <div className="space-y-3">
           <button
             onClick={onClose}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-3 rounded-xl font-semibold hover:from-purple-400 hover:to-pink-400 transition-all duration-300"
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-3 rounded-xl font-semibold hover:from-blue-400 hover:to-purple-500 transition-all duration-300"
           >
             Got it, thanks!
           </button>

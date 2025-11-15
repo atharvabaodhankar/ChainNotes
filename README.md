@@ -1,4 +1,4 @@
-# 📝 Web3 Notes
+# 🔗 ChainNotes
 
 > A fully decentralized, encrypted note-taking application built on Ethereum blockchain and IPFS
 
@@ -9,7 +9,7 @@
 
 ## 🌟 Overview
 
-Web3 Notes is a production-ready decentralized application (dApp) that combines blockchain technology with distributed file storage to create a censorship-resistant, privacy-focused note-taking platform. Your notes are truly yours - encrypted, immutable, and stored on the blockchain.
+ChainNotes is a production-ready decentralized application (dApp) that combines blockchain technology with distributed file storage to create a censorship-resistant, privacy-focused note-taking platform. Your notes are truly yours - encrypted, immutable, and stored on the blockchain.
 
 ### 🎯 Key Features
 
@@ -221,7 +221,7 @@ VITE_CONTRACT_ADDRESS=0xc95BC91D0e0Bcb13F288d2341a289D9b0c281b03
 VITE_PINATA_API_KEY=your_pinata_api_key
 VITE_PINATA_SECRET_API_KEY=your_pinata_secret_key
 VITE_PINATA_SECRET_JWT=your_pinata_jwt
-VITE_SECRET=Web3Notes_SecureKey_2025
+VITE_SECRET=ChainNotes_SecureKey_2025
 ```
 
 **Smart Contracts** (`smart-contracts/.env`):
@@ -257,7 +257,7 @@ http://localhost:5173
    - Click the "+" button
    - Enter title and content
    - Optionally add a category
-   - Click "Add Note"
+   - Click "Deploy Note"
    - Confirm transaction in MetaMask
 
 4. **Explore Features**
@@ -536,7 +536,7 @@ See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed instructions.
 
 ### vs Traditional Note Apps
 
-| Feature | Web3 Notes | Google Keep | Evernote |
+| Feature | ChainNotes | Google Keep | Evernote |
 |---------|-----------|-------------|----------|
 | **Data Ownership** | ✅ You own it | ❌ Company owns | ❌ Company owns |
 | **Privacy** | ✅ Encrypted | ⚠️ Server access | ⚠️ Server access |
@@ -547,7 +547,7 @@ See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed instructions.
 
 ### vs Other Web3 Note Apps
 
-| Feature | Web3 Notes | Others |
+| Feature | ChainNotes | Others |
 |---------|-----------|--------|
 | **Mobile Support** | ✅ Excellent | ⚠️ Limited |
 | **Automated Faucet** | ✅ Built-in | ❌ Manual |
@@ -648,4 +648,4 @@ If you find this project useful, please consider giving it a star ⭐
 
 **Built with ❤️ for the decentralized web**
 
-**Web3 Notes** - Your notes, your keys, your data.
+**ChainNotes** - Your notes, your keys, your data.

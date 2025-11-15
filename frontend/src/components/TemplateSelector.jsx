@@ -72,9 +72,9 @@ const TemplateSelector = ({ onSelectTemplate, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 max-w-3xl w-full shadow-2xl shadow-purple-500/10 max-h-[90vh] overflow-y-auto">
+      <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-6 max-w-3xl w-full shadow-2xl shadow-blue-500/10 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-100 bg-gradient-to-r from-emerald-400 to-purple-400 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold text-gray-100 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
             Choose a Template
           </h2>
           <button
@@ -95,12 +95,12 @@ const TemplateSelector = ({ onSelectTemplate, onClose }) => {
                 onSelectTemplate(NOTE_TEMPLATES[template.id]);
                 onClose();
               }}
-              className="bg-gray-700/30 hover:bg-gray-700/50 border border-purple-500/20 hover:border-emerald-500/40 rounded-xl p-6 transition-all duration-300 text-left group"
+              className="bg-gray-700/30 hover:bg-gray-700/50 border border-blue-500/20 hover:border-blue-500/40 rounded-xl p-6 transition-all duration-300 text-left group"
             >
               <div className={`inline-flex p-3 rounded-lg bg-gradient-to-r ${template.color} text-white mb-3`}>
                 {template.icon}
               </div>
-              <h3 className="text-gray-100 font-semibold mb-2 group-hover:text-emerald-400 transition-colors">
+              <h3 className="text-gray-100 font-semibold mb-2 group-hover:text-blue-400 transition-colors">
                 {template.name}
               </h3>
               <p className="text-gray-400 text-sm">

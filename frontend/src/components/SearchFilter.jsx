@@ -16,7 +16,7 @@ const SearchFilter = ({ onFilterChange, categories, noteCount }) => {
   };
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-4 sm:p-6 mb-6 shadow-2xl shadow-purple-500/10">
+    <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-4 sm:p-6 mb-6 shadow-2xl shadow-blue-500/10">
       {/* Search Bar */}
       <div className="flex items-center gap-3 mb-4">
         <div className="flex-1 relative">
@@ -25,7 +25,7 @@ const SearchFilter = ({ onFilterChange, categories, noteCount }) => {
             placeholder="Search notes..."
             value={filters.searchQuery}
             onChange={(e) => handleFilterChange('searchQuery', e.target.value)}
-            className="w-full bg-gray-700/50 text-gray-100 px-4 py-3 pl-12 rounded-xl border border-purple-500/20 focus:border-emerald-500/40 focus:outline-none transition-colors"
+            className="w-full bg-gray-700/50 text-gray-100 px-4 py-3 pl-12 rounded-xl border border-blue-500/20 focus:border-blue-500/40 focus:outline-none transition-colors"
           />
           <svg
             className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2"
@@ -44,7 +44,7 @@ const SearchFilter = ({ onFilterChange, categories, noteCount }) => {
         
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="bg-gray-700/50 hover:bg-gray-700 text-gray-300 px-4 py-3 rounded-xl border border-purple-500/20 transition-colors flex items-center gap-2"
+          className="bg-gray-700/50 hover:bg-gray-700 text-gray-300 px-4 py-3 rounded-xl border border-blue-500/20 transition-colors flex items-center gap-2"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
@@ -64,7 +64,7 @@ const SearchFilter = ({ onFilterChange, categories, noteCount }) => {
             <select
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
-              className="w-full bg-gray-700/50 text-gray-100 px-4 py-2 rounded-lg border border-purple-500/20 focus:border-emerald-500/40 focus:outline-none transition-colors"
+              className="w-full bg-gray-700/50 text-gray-100 px-4 py-2 rounded-lg border border-blue-500/20 focus:border-blue-500/40 focus:outline-none transition-colors"
             >
               <option value="all">All Categories</option>
               {categories.map(cat => (
@@ -81,7 +81,7 @@ const SearchFilter = ({ onFilterChange, categories, noteCount }) => {
             <select
               value={filters.sortBy}
               onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-              className="w-full bg-gray-700/50 text-gray-100 px-4 py-2 rounded-lg border border-purple-500/20 focus:border-emerald-500/40 focus:outline-none transition-colors"
+              className="w-full bg-gray-700/50 text-gray-100 px-4 py-2 rounded-lg border border-blue-500/20 focus:border-blue-500/40 focus:outline-none transition-colors"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -101,7 +101,7 @@ const SearchFilter = ({ onFilterChange, categories, noteCount }) => {
               className={`w-full px-4 py-2 rounded-lg border transition-all duration-300 flex items-center justify-center gap-2 ${
                 filters.showFavoritesOnly
                   ? 'bg-yellow-500/20 border-yellow-500/40 text-yellow-300'
-                  : 'bg-gray-700/50 border-purple-500/20 text-gray-300'
+                  : 'bg-gray-700/50 border-blue-500/20 text-gray-300'
               }`}
             >
               <svg className="w-5 h-5" fill={filters.showFavoritesOnly ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">

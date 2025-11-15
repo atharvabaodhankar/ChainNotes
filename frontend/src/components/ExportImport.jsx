@@ -35,9 +35,9 @@ const ExportImport = ({ notes, onImport, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 max-w-2xl w-full shadow-2xl shadow-purple-500/10">
+      <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-6 max-w-2xl w-full shadow-2xl shadow-blue-500/10">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-100 bg-gradient-to-r from-emerald-400 to-purple-400 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold text-gray-100 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
             Export / Import Notes
           </h2>
           <button
@@ -56,7 +56,7 @@ const ExportImport = ({ notes, onImport, onClose }) => {
             onClick={() => setActiveTab('export')}
             className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
               activeTab === 'export'
-                ? 'bg-gradient-to-r from-emerald-500 to-purple-500 text-white'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
                 : 'bg-gray-700/50 text-gray-400 hover:text-gray-200'
             }`}
           >
@@ -66,7 +66,7 @@ const ExportImport = ({ notes, onImport, onClose }) => {
             onClick={() => setActiveTab('import')}
             className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
               activeTab === 'import'
-                ? 'bg-gradient-to-r from-emerald-500 to-purple-500 text-white'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
                 : 'bg-gray-700/50 text-gray-400 hover:text-gray-200'
             }`}
           >
@@ -78,7 +78,7 @@ const ExportImport = ({ notes, onImport, onClose }) => {
         {activeTab === 'export' && (
           <div className="space-y-4">
             <p className="text-gray-300 mb-4">
-              Export your notes in different formats. You have <span className="font-bold text-emerald-400">{notes.length}</span> notes to export.
+              Export your notes in different formats. You have <span className="font-bold text-blue-400">{notes.length}</span> notes to export.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

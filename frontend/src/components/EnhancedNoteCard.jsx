@@ -1,12 +1,12 @@
 const EnhancedNoteCard = ({ note, onDelete, onToggleFavorite, onClick }) => {
   return (
     <div
-      className="bg-gray-700/30 border border-purple-500/20 rounded-xl p-6 hover:border-emerald-500/40 hover:bg-gray-700/50 transition-all duration-300 group backdrop-blur-sm shadow-lg hover:shadow-emerald-500/10 cursor-pointer"
+      className="bg-gray-700/30 border border-blue-500/20 rounded-xl p-6 hover:border-blue-500/40 hover:bg-gray-700/50 transition-all duration-300 group backdrop-blur-sm shadow-lg hover:shadow-blue-500/10 cursor-pointer"
       onClick={() => onClick(note)}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="bg-gradient-to-r from-emerald-500 to-purple-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
+          <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
             #{note.id}
           </span>
           {note.category && (
@@ -75,7 +75,7 @@ const EnhancedNoteCard = ({ note, onDelete, onToggleFavorite, onClick }) => {
         <h3 className="text-gray-100 font-semibold truncate flex-1">
           {note.title}
         </h3>
-        <div className="flex items-center gap-1 text-emerald-400 text-xs">
+        <div className="flex items-center gap-1 text-blue-400 text-xs">
           <svg
             className="w-3 h-3"
             fill="none"
@@ -117,7 +117,7 @@ const EnhancedNoteCard = ({ note, onDelete, onToggleFavorite, onClick }) => {
         target="_blank"
         rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
-        className="text-emerald-400 hover:text-emerald-300 text-xs inline-flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 mt-2"
+        className="text-blue-400 hover:text-blue-300 text-xs inline-flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 mt-2"
       >
         <svg
           className="w-4 h-4"

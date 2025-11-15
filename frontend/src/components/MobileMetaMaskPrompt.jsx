@@ -21,18 +21,10 @@ const MobileMetaMaskPrompt = ({ onContinueAnyway }) => {
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
-      <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-10 max-w-md w-full text-center shadow-2xl shadow-purple-500/10">
-        <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-orange-500/25">
-          <svg
-            className="w-8 h-8 text-white"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-          </svg>
-        </div>
+      <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-10 max-w-md w-full text-center shadow-2xl shadow-blue-500/10">
+        <img src="/ChainNotes.png" alt="ChainNotes Logo" className="w-20 h-20 mx-auto mb-6" />
         
-        <h1 className="text-2xl font-bold text-gray-100 mb-3">
+        <h1 className="text-2xl font-bold text-gray-100 mb-3 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
           {platform} Browser Detected
         </h1>
         
@@ -43,7 +35,7 @@ const MobileMetaMaskPrompt = ({ onContinueAnyway }) => {
         <div className="space-y-4">
           <button
             onClick={handleOpenInMetaMask}
-            className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-4 rounded-xl font-semibold hover:from-orange-400 hover:to-red-400 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25"
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-blue-400 hover:to-purple-500 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
           >
             <svg
               className="w-5 h-5"
@@ -69,7 +61,7 @@ const MobileMetaMaskPrompt = ({ onContinueAnyway }) => {
 
           <button
             onClick={handleDownloadMetaMask}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-4 rounded-xl font-semibold hover:from-blue-400 hover:to-purple-400 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
+            className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-purple-400 hover:to-purple-500 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25"
           >
             <svg
               className="w-5 h-5"
@@ -90,7 +82,7 @@ const MobileMetaMaskPrompt = ({ onContinueAnyway }) => {
 
         <div className="mt-6 pt-6 border-t border-gray-700/50">
           <p className="text-gray-400 text-xs leading-relaxed mb-4">
-            MetaMask is required to interact with this decentralized application. 
+            MetaMask is required to interact with ChainNotes. 
             Your private keys remain secure and never leave your device.
           </p>
           
