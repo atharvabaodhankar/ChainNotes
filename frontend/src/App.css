@@ -1,4 +1,32 @@
-/* Centered Modal Styles */
+/* Modal Animations */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes slideUp {
+	from {
+		transform: translateY(20px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+.animate-fadeIn {
+	animation: fadeIn 0.2s ease-out;
+}
+
+.animate-slideUp {
+	animation: slideUp 0.3s ease-out;
+}
+
 /* Centered Modal Styles */
 .centered-modal {
 	position: fixed;
@@ -6,7 +34,8 @@
 	left: 0;
 	width: 100vw;
 	height: 100vh;
-	background: rgba(10, 20, 40, 0.85); /* darker overlay for focus */
+	background: rgba(0, 0, 0, 0.4);
+	backdrop-filter: blur(4px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -15,70 +44,66 @@
 	transition: opacity 0.3s cubic-bezier(.4,0,.2,1);
 	z-index: 1000;
 }
+
 .centered-modal.open {
 	opacity: 1;
 	pointer-events: auto;
 }
+
 .centered-modal-content {
-	background: #232946;
-	color: #fff;
-	padding: 2.5rem 2.5rem 2rem 2.5rem;
-	border-radius: 1.25rem;
-	box-shadow: 0 12px 48px 0 rgba(0,0,0,0.45), 0 0 0 2px #6c63ff33;
-	border: 1.5px solid #6c63ff44;
-	max-width: 520px;
-	width: 96vw;
-	max-height: 82vh;
+	background: white;
+	color: #111827;
+	padding: 2rem;
+	border-radius: 1rem;
+	box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+	max-width: 600px;
+	width: 90vw;
+	max-height: 85vh;
 	overflow-y: auto;
 	position: relative;
-	animation: modalPop 0.35s cubic-bezier(.4,0,.2,1);
+	animation: modalPop 0.3s cubic-bezier(.4,0,.2,1);
 }
 
 @media (max-width: 640px) {
 	.centered-modal-content {
-		padding: 2rem 1.5rem 1.5rem 1.5rem;
+		padding: 1.5rem;
 		width: 94vw;
-		max-height: 85vh;
+		max-height: 90vh;
 	}
 }
+
 @keyframes modalPop {
 	0% {
-		transform: scale(0.7) translateY(40px);
+		transform: scale(0.95) translateY(10px);
 		opacity: 0;
-	}
-	60% {
-		transform: scale(1.05) translateY(-8px);
-		opacity: 1;
-	}
-	80% {
-		transform: scale(0.98) translateY(0);
-		opacity: 1;
 	}
 	100% {
 		transform: scale(1) translateY(0);
 		opacity: 1;
 	}
 }
+
 .centered-close-btn {
 	position: absolute;
 	top: 1rem;
 	right: 1rem;
-	background: none;
+	background: #f3f4f6;
 	border: none;
-	color: #fff;
-	font-size: 2rem;
+	color: #6b7280;
+	font-size: 1.5rem;
 	cursor: pointer;
-	transition: color 0.2s;
+	transition: all 0.2s;
 	z-index: 10;
 	padding: 0.5rem;
-	min-width: 44px;
-	min-height: 44px;
+	width: 36px;
+	height: 36px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	border-radius: 0.5rem;
 }
+
 .centered-close-btn:hover {
-	color: #ff6b81;
-	background: rgba(255, 107, 129, 0.1);
+	color: #374151;
+	background: #e5e7eb;
 }
