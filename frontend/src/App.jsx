@@ -757,7 +757,7 @@ function App() {
         <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             {/* Title Section with Logo */}
-            <div className="flex items-center gap-4">
+            <a href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
               <div className="bg-white p-3 rounded-lg shadow-sm">
                 <img src="/ChainNotes.png" alt="ChainNotes Logo" className="w-8 h-8" />
               </div>
@@ -769,7 +769,7 @@ function App() {
                   Decentralized • Immutable • Secure
                 </p>
               </div>
-            </div>
+            </a>
 
             {/* Navigation and Wallet Section */}
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -815,12 +815,27 @@ function App() {
                 </button>
               </div>
 
-              {/* Wallet Info */}
-              <div className="bg-white rounded-lg p-2 flex items-center gap-2 shadow-sm order-1 sm:order-2 flex-grow sm:flex-grow-0">
-                <span className="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
-                <div className="text-xs">
-                  <p className="font-medium text-gray-700">Connected <span className="hidden md:inline">(Ethereum Sepolia)</span></p>
-                  <p className="text-gray-500 font-mono">{userAddress.slice(0, 6)}...{userAddress.slice(-4)}</p>
+              {/* Wallet Info with Disconnect */}
+              <div className="bg-white rounded-lg p-2 shadow-sm order-1 sm:order-2 flex-grow sm:flex-grow-0">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+                  <div className="text-xs flex-grow">
+                    <p className="font-medium text-gray-700">Connected <span className="hidden md:inline">(Ethereum Sepolia)</span></p>
+                    <p className="text-gray-500 font-mono">{userAddress.slice(0, 6)}...{userAddress.slice(-4)}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsConnected(false);
+                      setUserAddress("");
+                      setNotes([]);
+                    }}
+                    className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors"
+                    title="Disconnect Wallet"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1095,40 +1110,45 @@ function App() {
                     className="centered-close-btn"
                     onClick={closeFullscreen}
                   >
-                    &times;
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
-                  <h2 className="text-2xl font-bold mb-2">
-                    #{fullscreenNote.id} {fullscreenNote.title}
-                  </h2>
-                  <div className="text-gray-400 mb-4">
-                    {new Date(
-                      Number(fullscreenNote.timestamp) * 1000
-                    ).toLocaleDateString()}
+                  
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="bg-purple-100 text-purple-700 text-sm font-bold px-3 py-1 rounded-full">
+                        #{fullscreenNote.id}
+                      </span>
+                      <span className="text-gray-400 text-sm">
+                        {new Date(Number(fullscreenNote.timestamp) * 1000).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                      {fullscreenNote.title}
+                    </h2>
+                    <div className="flex items-center gap-2 text-sm text-purple-600">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      <span className="font-medium">Encrypted</span>
+                    </div>
                   </div>
-                  <div className="text-emerald-400 mb-2">
-                    {fullscreenNote.ipfsHash ? "🔒 Encrypted" : ""}
+                  
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4 max-h-96 overflow-y-auto">
+                    <p className="text-gray-800 text-base whitespace-pre-line leading-relaxed">
+                      {fullscreenNote.content}
+                    </p>
                   </div>
-                  <div className="text-gray-100 text-base whitespace-pre-line mb-4 max-h-96 overflow-y-auto">
-                    {fullscreenNote.content}
-                  </div>
+                  
                   <a
                     href={`https://gateway.pinata.cloud/ipfs/${fullscreenNote.ipfsHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-emerald-400 hover:text-emerald-300 text-xs inline-flex items-center gap-1"
+                    className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 text-sm font-medium transition-colors"
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                      />
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                     View on IPFS
                   </a>
