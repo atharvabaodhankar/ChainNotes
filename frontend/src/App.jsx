@@ -13,6 +13,8 @@ import EnhancedNoteCard from "./components/EnhancedNoteCard";
 import StatsCard from "./components/StatsCard";
 import TemplateSelector from "./components/TemplateSelector";
 import ExportImport from "./components/ExportImport";
+import DeployProgress from "./components/DeployProgress";
+import { useDeployProgress } from "./hooks/useDeployProgress";
 import NotesArtifact from "./abis/NotesABI.json";
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
@@ -47,6 +49,7 @@ function App() {
     sortBy: 'newest'
   });
   const [manuallyDisconnected, setManuallyDisconnected] = useState(false);
+  const deployProgress = useDeployProgress();
 
   // Ethereum Sepolia testnet configuration
   const SEPOLIA_CHAIN_ID = "11155111";
@@ -410,23 +413,34 @@ function App() {
     if (!noteContent.trim() || !isConnected) return;
 
     setIsAddingNote(true);
+    deployProgress.start();
+    
     try {
+      // Step 1: Encrypting
       const noteData = {
         title: noteTitle.trim() || "Untitled Note",
         content: noteContent.trim(),
       };
+      
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate encryption time
+      deployProgress.nextStep();
+      
+      // Step 2: Uploading to IPFS
       const ipfsHash = await uploadNoteToIPFS(noteData, userAddress);
+      deployProgress.nextStep();
+      
+      // Step 3: Storing on Blockchain
       const contract = await getContract();
-      try {
-        // V2 contract requires category as second parameter
-        const tx = await contract.addNote(ipfsHash, noteCategory || "", { gasLimit: 500000 });
-        await tx.wait();
-      } catch (err) {
-        console.error(
-          "Revert reason:",
-          err.reason || err.error?.message || err
-        );
-      }
+      const tx = await contract.addNote(ipfsHash, noteCategory || "", { gasLimit: 500000 });
+      deployProgress.nextStep();
+      
+      // Step 4: Waiting for confirmation
+      await tx.wait();
+      deployProgress.nextStep();
+      
+      // Step 5: Finalizing
+      await new Promise(resolve => setTimeout(resolve, 500));
+      deployProgress.nextStep();
 
       setNoteTitle("");
       setNoteContent("");
@@ -435,6 +449,8 @@ function App() {
       loadNotes();
     } catch (error) {
       console.error("Error adding note:", error);
+      deployProgress.reset();
+      
       let errorMessage = "Failed to add note. Please try again.";
       if (error.code === "ACTION_REJECTED") {
         errorMessage = "Transaction rejected by user.";
@@ -1599,6 +1615,13 @@ function App() {
           />
         )}
       </div>
+
+      {/* Deploy Progress Modal */}
+      <DeployProgress
+        isOpen={deployProgress.isOpen}
+        currentStep={deployProgress.currentStep}
+        onComplete={deployProgress.complete}
+      />
     </div>
   );
 }
