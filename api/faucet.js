@@ -75,13 +75,23 @@ export default async function handler(req, res) {
     // Check if faucet is configured
     if (!FAUCET_PRIVATE_KEY) {
       return res.status(500).json({ 
-        error: 'Faucet not configured' 
+        error: 'Faucet not configured',
+        debug: 'PRIVATE_KEY environment variable is not set'
       });
     }
 
     // Initialize provider and wallet
-    const provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
-    const faucetWallet = new ethers.Wallet(FAUCET_PRIVATE_KEY, provider);
+    let provider, faucetWallet;
+    try {
+      provider = new ethers.JsonRpcProvider(SEPOLIA_RPC_URL);
+      faucetWallet = new ethers.Wallet(FAUCET_PRIVATE_KEY, provider);
+    } catch (walletError) {
+      console.error('Wallet initialization error:', walletError);
+      return res.status(500).json({ 
+        error: 'Failed to initialize faucet wallet',
+        details: walletError.message
+      });
+    }
 
     // Check faucet balance
     const faucetBalance = await faucetWallet.provider.getBalance(faucetWallet.address);
@@ -127,6 +137,8 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Faucet error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error code:', error.code);
     
     // Handle specific errors
     if (error.code === 'INSUFFICIENT_FUNDS') {
@@ -140,10 +152,21 @@ export default async function handler(req, res) {
         error: 'Network error. Please try again later.' 
       });
     }
+    
+    // Handle RPC rate limiting
+    if (error.message && error.message.includes('in-flight transaction limit')) {
+      return res.status(429).json({ 
+        error: 'Too many requests. Please try again in a few minutes.',
+        details: 'RPC rate limit reached'
+      });
+    }
 
+    // Return detailed error for debugging
     return res.status(500).json({ 
       error: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: error.message,
+      code: error.code,
+      type: error.constructor.name
     });
   }
 }
