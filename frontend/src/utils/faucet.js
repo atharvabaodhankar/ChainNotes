@@ -1,8 +1,8 @@
 import { ethers } from 'ethers';
 
-const FAUCET_API_URL = process.env.NODE_ENV === 'production' 
+const FAUCET_API_URL = import.meta.env.MODE === 'production' 
   ? '/api/faucet' 
-  : 'http://localhost:3000/api/faucet';
+  : 'http://localhost:3001/api/faucet';
 
 /**
  * Request Sepolia ETH from the faucet

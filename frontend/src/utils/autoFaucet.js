@@ -1,6 +1,8 @@
 import { ethers } from 'ethers';
 
-const FAUCET_API_URL = '/api/faucet';
+const FAUCET_API_URL = import.meta.env.MODE === 'production' 
+  ? '/api/faucet' 
+  : 'http://localhost:3001/api/faucet';
 const FAUCET_STORAGE_KEY = 'chainnotes_faucet_claimed';
 
 /**
