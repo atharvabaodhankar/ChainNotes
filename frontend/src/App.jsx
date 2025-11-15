@@ -46,6 +46,7 @@ function App() {
     showFavoritesOnly: false,
     sortBy: 'newest'
   });
+  const [manuallyDisconnected, setManuallyDisconnected] = useState(false);
 
   // Ethereum Sepolia testnet configuration
   const SEPOLIA_CHAIN_ID = "11155111";
@@ -194,6 +195,9 @@ function App() {
         return;
       }
 
+      // Reset manual disconnect flag when user manually connects
+      setManuallyDisconnected(false);
+
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
@@ -246,6 +250,11 @@ function App() {
 
   const checkConnection = async () => {
     try {
+      // Don't auto-reconnect if user manually disconnected
+      if (manuallyDisconnected) {
+        return;
+      }
+
       if (window.ethereum) {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const accounts = await provider.listAccounts();
@@ -825,6 +834,7 @@ function App() {
                   </div>
                   <button
                     onClick={() => {
+                      setManuallyDisconnected(true);
                       setIsConnected(false);
                       setUserAddress("");
                       setNotes([]);
