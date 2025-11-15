@@ -589,20 +589,20 @@ function App() {
 
   if (!window.ethereum) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
-        <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-10 max-w-md w-full text-center shadow-2xl shadow-blue-500/10">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-10 max-w-md w-full text-center">
           <img src="/ChainNotes.png" alt="ChainNotes Logo" className="w-20 h-20 mx-auto mb-6" />
-          <h1 className="text-2xl font-bold text-gray-100 mb-3 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">
             MetaMask Required
           </h1>
-          <p className="text-gray-300 mb-8 leading-relaxed">
+          <p className="text-gray-600 mb-8 leading-relaxed">
             Install MetaMask to access ChainNotes and the decentralized Web3 ecosystem.
           </p>
           <a
             href="https://metamask.io/download/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-400 hover:to-purple-500 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/25"
+            className="inline-flex items-center justify-center w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-transform shadow-md"
           >
             Install MetaMask
           </a>
@@ -613,13 +613,13 @@ function App() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
-        <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-10 max-w-md w-full text-center shadow-2xl shadow-blue-500/10">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-10 max-w-md w-full text-center">
           <img src="/ChainNotes.png" alt="ChainNotes Logo" className="w-20 h-20 mx-auto mb-6" />
-          <h1 className="text-3xl font-bold text-gray-100 mb-3 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">
             ChainNotes
           </h1>
-          <p className="text-gray-300 mb-8 leading-relaxed">
+          <p className="text-gray-600 mb-8 leading-relaxed">
             Connect your wallet to access your decentralized notes.
           </p>
 
@@ -647,7 +647,7 @@ function App() {
 
           <button
             onClick={connectWallet}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-blue-400 hover:to-purple-500 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
+            className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-4 rounded-xl font-semibold hover:scale-105 transition-transform flex items-center justify-center gap-2 shadow-md"
           >
             <svg
               className="w-5 h-5"
@@ -726,8 +726,8 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <div className="max-w-6xl mx-auto p-6">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6 md:p-8">
         {/* Mobile MetaMask Banner */}
         {isMobileBrowser() && bypassMobileCheck && (
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
@@ -754,52 +754,50 @@ function App() {
         )}
 
         {/* Header */}
-        <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-4 sm:p-6 lg:p-8 mb-6 shadow-2xl shadow-blue-500/10">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             {/* Title Section with Logo */}
-            <div className="text-center lg:text-left flex items-center gap-4">
-              <img src="/ChainNotes.png" alt="ChainNotes Logo" className="w-12 h-12 sm:w-16 sm:h-16" />
+            <div className="flex items-center gap-4">
+              <div className="bg-white p-3 rounded-lg shadow-sm">
+                <img src="/ChainNotes.png" alt="ChainNotes Logo" className="w-8 h-8" />
+              </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-100 mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold text-gray-900">
                   ChainNotes
                 </h1>
-                <p className="text-gray-300 text-sm sm:text-base">
+                <p className="text-sm text-gray-500">
                   Decentralized • Immutable • Secure
                 </p>
               </div>
             </div>
 
             {/* Navigation and Wallet Section */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               {/* Tab Navigation */}
-              <div className="flex bg-gray-700/50 rounded-xl p-1 border border-blue-500/20 w-full sm:w-auto">
+              <div className="flex items-center bg-white rounded-lg p-2 gap-2 shadow-sm order-2 sm:order-1">
                 <button
                   onClick={() => setCurrentView("dashboard")}
-                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
+                  className={`font-semibold py-2 px-4 rounded-md text-sm transition-all ${
                     currentView === "dashboard"
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
-                      : "text-gray-400 hover:text-gray-200"
+                      ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md"
+                      : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
                   Dashboard
                 </button>
                 <button
                   onClick={() => setCurrentView("calendar")}
-                  className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
+                  className={`font-semibold py-2 px-4 rounded-md text-sm transition-all ${
                     currentView === "calendar"
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
-                      : "text-gray-400 hover:text-gray-200"
+                      ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md"
+                      : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
                   Calendar
                 </button>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowTemplateSelector(true)}
-                  className="bg-gray-700/50 hover:bg-gray-700 text-gray-300 p-3 rounded-xl border border-blue-500/20 transition-all duration-300"
+                  className="text-gray-600 hover:bg-gray-100 p-2 rounded-md transition-colors"
                   title="Note Templates"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -808,7 +806,7 @@ function App() {
                 </button>
                 <button
                   onClick={() => setShowExportImport(true)}
-                  className="bg-gray-700/50 hover:bg-gray-700 text-gray-300 p-3 rounded-xl border border-blue-500/20 transition-all duration-300"
+                  className="text-gray-600 hover:bg-gray-100 p-2 rounded-md transition-colors"
                   title="Export/Import"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -818,17 +816,11 @@ function App() {
               </div>
 
               {/* Wallet Info */}
-              <div className="text-center sm:text-right">
-                <div className="flex items-center justify-center sm:justify-end gap-2">
-                  <div className="text-blue-400 text-xs sm:text-sm font-medium">
-                    ● Connected
-                  </div>
-                  <div className="text-purple-400 text-xs sm:text-sm font-medium">
-                    (Ethereum Sepolia)
-                  </div>
-                </div>
-                <div className="text-gray-100 font-mono text-xs sm:text-sm bg-gray-700/50 px-3 sm:px-4 py-2 rounded-lg border border-blue-500/30 shadow-lg shadow-blue-500/10">
-                  {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
+              <div className="bg-white rounded-lg p-2 flex items-center gap-2 shadow-sm order-1 sm:order-2 flex-grow sm:flex-grow-0">
+                <span className="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+                <div className="text-xs">
+                  <p className="font-medium text-gray-700">Connected <span className="hidden md:inline">(Ethereum Sepolia)</span></p>
+                  <p className="text-gray-500 font-mono">{userAddress.slice(0, 6)}...{userAddress.slice(-4)}</p>
                 </div>
               </div>
             </div>
@@ -943,13 +935,16 @@ function App() {
               </div>
             </div>
 
+            {/* Note Count */}
+            <p className="text-center text-sm text-gray-500 mb-8">
+              {filterNotes(notes, filters).length} {filterNotes(notes, filters).length === 1 ? 'note' : 'notes'} found
+            </p>
+
             {/* Recent Notes */}
-            <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-8 shadow-2xl shadow-blue-500/10">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-100 flex items-center gap-3">
-                  <span className="w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full animate-pulse"></span>
-                  Recent Notes
-                </h2>
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-purple-600"></span>
+                <h2 className="text-xl font-bold text-gray-900">Recent Notes</h2>
               </div>
 
               {loadingNotes ? (
@@ -1240,7 +1235,7 @@ function App() {
         {/* Floating Add Button */}
         <button
           onClick={() => setShowAddModal(true)}
-          className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-2xl shadow-blue-500/25 hover:from-blue-400 hover:to-purple-500 transition-all duration-300 transform hover:scale-110 flex items-center justify-center z-50"
+          className="fixed bottom-8 right-8 bg-gradient-to-r from-purple-500 to-purple-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-105 transition-transform z-50"
         >
           <svg
             className="w-8 h-8"
