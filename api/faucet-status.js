@@ -1,7 +1,9 @@
 import { ethers } from 'ethers';
 
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
-const FAUCET_PRIVATE_KEY = process.env.PRIVATE_KEY;
+const PRIVATE_KEY_RAW = process.env.PRIVATE_KEY;
+// Ensure private key has 0x prefix
+const FAUCET_PRIVATE_KEY = PRIVATE_KEY_RAW ? (PRIVATE_KEY_RAW.startsWith('0x') ? PRIVATE_KEY_RAW : '0x' + PRIVATE_KEY_RAW) : null;
 const FAUCET_AMOUNT = process.env.FAUCET_AMOUNT || '0.005';
 
 export default async function handler(req, res) {

@@ -208,6 +208,8 @@ function App() {
       }
     } catch (error) {
       console.error('Auto-faucet error:', error);
+      // Fail silently - don't show error to user for auto-faucet
+      // They can still use the manual faucet button if needed
     } finally {
       setIsRequestingFaucet(false);
     }
