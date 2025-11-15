@@ -1140,89 +1140,145 @@ function App() {
 
         {/* Calendar View */}
         {currentView === "calendar" && (
-          <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-8 shadow-2xl shadow-blue-500/10">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            {/* Calendar Header */}
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900">
                 {new Date().toLocaleDateString("en-US", {
                   month: "long",
                   year: "numeric",
                 })}
               </h2>
+              <div className="flex gap-2">
+                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-2 mb-4">
+            {/* Day Headers */}
+            <div className="grid grid-cols-7 gap-2 mb-2">
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                 <div
                   key={day}
-                  className="text-center text-gray-400 text-sm font-medium py-2"
+                  className="text-center text-gray-500 text-sm font-semibold py-2"
                 >
                   {day}
                 </div>
               ))}
             </div>
 
+            {/* Calendar Grid */}
             <div className="grid grid-cols-7 gap-2">
               {getCalendarDays().map((date, index) => {
                 if (!date) {
-                  return <div key={index} className="h-20"></div>;
+                  return <div key={index} className="aspect-square"></div>;
                 }
 
                 const dayNotes = getNotesForDate(date);
-                const isToday =
-                  date.toDateString() === new Date().toDateString();
+                const isToday = date.toDateString() === new Date().toDateString();
+                const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
 
                 return (
-                  <div
+                  <button
                     key={index}
-                    className={`h-20 border border-blue-500/20 rounded-lg p-2 hover:border-blue-500/40 transition-all duration-200 cursor-pointer ${
-                      isToday
-                        ? "bg-blue-500/10 border-blue-500/40"
-                        : "bg-gray-700/20"
-                    }`}
                     onClick={() => setSelectedDate(date)}
+                    className={`aspect-square p-2 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${
+                      isToday
+                        ? "bg-purple-50 border-purple-500 text-purple-700 font-bold"
+                        : isSelected
+                        ? "bg-purple-100 border-purple-400 text-purple-800"
+                        : dayNotes.length > 0
+                        ? "bg-blue-50 border-blue-200 text-gray-900 hover:border-blue-400"
+                        : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+                    }`}
                   >
-                    <div className="text-gray-100 text-sm font-medium">
-                      {date.getDate()}
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <span className="text-sm font-medium">{date.getDate()}</span>
+                      {dayNotes.length > 0 && (
+                        <div className="flex gap-1 mt-1">
+                          {dayNotes.slice(0, 3).map((_, i) => (
+                            <div
+                              key={i}
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                isToday ? "bg-purple-600" : "bg-blue-500"
+                              }`}
+                            ></div>
+                          ))}
+                        </div>
+                      )}
+                      {dayNotes.length > 3 && (
+                        <span className="text-xs text-gray-500 mt-0.5">
+                          +{dayNotes.length - 3}
+                        </span>
+                      )}
                     </div>
-                    {dayNotes.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {dayNotes.slice(0, 2).map((note, i) => (
-                          <div
-                            key={i}
-                            className="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full"
-                          ></div>
-                        ))}
-                        {dayNotes.length > 2 && (
-                          <div className="text-xs text-blue-400">
-                            +{dayNotes.length - 2}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  </button>
                 );
               })}
             </div>
 
+            {/* Selected Date Notes */}
             {selectedDate && (
-              <div className="mt-6 p-4 bg-gray-700/30 rounded-xl border border-blue-500/20">
-                <h3 className="text-gray-100 font-semibold mb-3">
-                  Notes for {selectedDate.toLocaleDateString()}
-                </h3>
+              <div className="mt-6 p-5 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {selectedDate.toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </h3>
+                  <button
+                    onClick={() => setSelectedDate(null)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
                 {getNotesForDate(selectedDate).length === 0 ? (
-                  <p className="text-gray-400 text-sm">
-                    No notes for this date
-                  </p>
+                  <div className="text-center py-8">
+                    <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p className="text-gray-500 text-sm">No notes for this date</p>
+                  </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {getNotesForDate(selectedDate).map((note, i) => (
-                      <div key={i} className="bg-gray-600/30 rounded-lg p-3">
-                        <h4 className="text-gray-100 font-medium text-sm">
-                          {note.title}
-                        </h4>
-                        <p className="text-gray-300 text-xs mt-1 line-clamp-2">
+                      <div
+                        key={i}
+                        onClick={() => openFullscreen(note)}
+                        className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="text-gray-900 font-semibold text-sm group-hover:text-purple-600 transition-colors">
+                            {note.title}
+                          </h4>
+                          <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-medium">
+                            #{note.id}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-xs line-clamp-2 mb-2">
                           {note.content}
                         </p>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {new Date(Number(note.timestamp) * 1000).toLocaleTimeString()}
+                        </div>
                       </div>
                     ))}
                   </div>
